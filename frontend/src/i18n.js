@@ -9,19 +9,25 @@ i18n
       it: {
         translation: {
           welcome: 'Benvenuto',
+          subtitle: 'Prova il servizio',
           goToApp: 'Vai all\'app',
           appPageTitle: 'Titolo della Pagina App',
           someText: 'Qualche testo per la Pagina App',
           uploadFile: 'Carica File',
+          btn_info: 'INFO',
+          btn_about: 'ABOUT',
         },
       },
       en: {
         translation: {
           welcome: 'Welcome',
+          subtitle: 'Try our service',
           goToApp: 'Go to App',
           appPageTitle: 'App Page Title',
           someText: 'Some text for App Page',
           uploadFile: 'Upload File',
+          btn_info: 'INFO',
+          btn_about: 'ABOUT',
         },
       },
     },
