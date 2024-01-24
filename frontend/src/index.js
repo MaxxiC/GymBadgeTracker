@@ -1,16 +1,25 @@
+// index.js
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
+import ReactDOM from 'react-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './i18n'; // Importa il tuo file di configurazione i18n
+import HomePage from './components/HomePage';
+import AppPage from './components/AppPage';
+import './style/index.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
 root.render(
   <React.StrictMode>
-    <App />
+    <Router>
+      <I18nextProvider i18n={i18n}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/app" element={<AppPage />} />
+          {/* Aggiungi qui una route per qualsiasi altra pagina */}
+        </Routes>
+      </I18nextProvider>
+    </Router>
   </React.StrictMode>
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-//reportWebVitals();
