@@ -1,0 +1,68 @@
+/* HomePage.css */
+
+:root {
+    --text_color_btn_home: #ffffff;
+    --bg_color_btn_home: #d1892b;
+  }
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .container-fluid {
+    background: radial-gradient(circle, #2c003e, #000000); /* Gradient radiale */
+    color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .row.bg-dark {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+  
+  .btn-link {
+    color: var(--text_color_btn_home);
+    border-radius: 0.5rem;
+    background: var(--bg_color_btn_home);
+  }
+
+  .btn-link:hover {
+    transition: all 200ms;
+    color: var(--text_color_btn_home);
+  transform: scale(1.04);
+    box-shadow: 0 0 1.1rem rgba(0,0,0,0.08);
+    background: var(--bg_color_btn_home);
+  }
+
+  .form-control {
+    background-color: #ffffff;
+    color: var(--text_color_btn_home);
+    background: var(--bg_color_btn_home);
+    height: 75%;
+    appearance: auto;
+    width: auto;
+    border-radius: 0.5rem;
+  }
+
+  .form-control:focus {
+    color: var(--text_color_btn_home);
+    background-color: var(--bg_color_btn_home);
+    
+  }  
+  
+  .logo-container {
+    background: url('../images/logo192.png') no-repeat center center;
+    background-size: contain; /* o 'cover' a seconda delle tue preferenze */
+    height: 50px;
+    width: 50px; /* Altezza massima desiderata */
+  }
+
+  .exe-container {
+    background: url('../images/logo512.png') no-repeat center center;
+    background-size: contain; /* o 'cover' a seconda delle tue preferenze */
+    height: 30vh;
+    width: 30vw;
+  }
