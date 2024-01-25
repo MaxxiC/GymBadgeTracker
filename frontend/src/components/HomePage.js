@@ -13,10 +13,10 @@ const HomePage = () => {
     <div className="container-fluid">
       <MainBar />
       {/* Main Content */}
-        <div className='d-flex flex-column justify-content-center m-auto'>
+      <div className='d-flex flex-column justify-content-center m-auto'>
         <div className="row ">
-          <div className="col-6">
-          <div className="exe-container"></div>
+          <div className="col-6 d-flex">
+            <div className="exe-container"></div>
           </div>
           <div className="col-6 m-auto">
             <h2>{t('welcome')}</h2>
@@ -26,8 +26,8 @@ const HomePage = () => {
             </Link>
           </div>
         </div>
-        </div>
       </div>
+    </div>
   );
 };
 
