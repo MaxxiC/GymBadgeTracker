@@ -24,8 +24,8 @@ const MainBar = () => {
 
             </div>
             <div className="col-2 d-flex align-items-center justify-content-end">
-                <button className="btn btn-link m-1 text-decoration-none">{t('btn_info')}</button>
-                <button className="btn btn-link m-1 text-decoration-none">{t('btn_about')}</button>
+                <button className="btn btn-link btn-link-h m-1 text-decoration-none">{t('btn_info')}</button>
+                <button className="btn btn-link btn-link-h m-1 text-decoration-none">{t('btn_about')}</button>
                 <select
                     className="form-control form-control-sm m-1"
                     onChange={(e) => changeLanguage(e.target.value)}

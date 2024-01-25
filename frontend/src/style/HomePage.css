@@ -29,7 +29,7 @@ body {
     background: var(--bg_color_btn_home);
   }
 
-  .btn-link:hover {
+  .btn-link-h:hover {
     transition: all 200ms;
     color: var(--text_color_btn_home);
   transform: scale(1.04);
@@ -60,9 +60,27 @@ body {
     width: 50px; /* Altezza massima desiderata */
   }
 
+
+
+
+
+  /* AppPage css */
+
   .exe-container {
     background: url('../images/logo512.png') no-repeat center center;
     background-size: contain; /* o 'cover' a seconda delle tue preferenze */
     height: 30vh;
     width: 30vw;
+  }
+
+  .inp-hover:hover {
+    color: aquamarine;
+    background-color: var(--bg_color_btn_home);
+  }
+
+  .dragging {
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 2px dashed #ccc;
+    color: #fff;
+    outline: none;
   }
