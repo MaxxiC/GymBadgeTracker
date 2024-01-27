@@ -2,7 +2,8 @@
 
 :root {
     --text_color_btn_home: #ffffff;
-    --bg_color_btn_home: #d1892b;
+    --bg_color_btn_home: #450061;
+    /* --bg_color_btn_home: #d1892b; */
   }
 
 body {
@@ -45,6 +46,7 @@ body {
     appearance: auto;
     width: auto;
     border-radius: 0.5rem;
+    border: 0;
   }
 
   .form-control:focus {
