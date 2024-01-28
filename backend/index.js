@@ -299,10 +299,16 @@ function getFilesInUploadsFolder() {
       } else {
         // Se è un file e non contiene "-modificato" nel nome, aggiungi le informazioni all'array
         if (!file.includes('-modificato')) {
+          const relativePath = path.relative(folderPath, filePath);
+          const encodedFileName = encodeURIComponent(relativePath).replace(/%20/g, ' '); // Codifica e sostituzione spazi
+          const downloadUrl = `/download/${encodedFileName}`; // URL di download con il percorso della cartella
+          const downloadUrlModificato = downloadUrl.replace('.', '-modificato.'); // Aggiunge "-modificato" prima dell'estensione
           filesInfo.push({
             id: filesInfo.length + 1,
-            name: path.relative(folderPath, filePath),
+            name: relativePath,
             creationDate: stats.birthtime,
+            downloadUrl,
+            downloadUrlModificato,
           });
         }
       }
@@ -317,6 +323,25 @@ function getFilesInUploadsFolder() {
 
   return filesInfo;
 }
+
+
+
+
+
+// Endpoint per il download di un file
+app.get('/download/:fileName', (req, res) => {
+  const fileName = req.params.fileName;
+  const filePath = path.join(__dirname, uploadFolder, fileName);
+
+  // Verifica che il file esista
+  if (fs.existsSync(filePath)) {
+    // Invia il file come risposta
+    res.download(filePath, decodeURI(fileName));
+  } else {
+    // Se il file non esiste, restituisci una risposta 404
+    res.status(404).send('File non trovato.');
+  }
+});
 
 
 
