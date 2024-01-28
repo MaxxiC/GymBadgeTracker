@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import '../style/HomePage.css';
 import MainBar from './MainBar';
+import OldFiles from './OldFiles';
 
 const AppPage = () => {
     const { t } = useTranslation();
@@ -146,6 +147,7 @@ const AppPage = () => {
                         )}
 
                     </div>
+                    <OldFiles />
                 </div>
             </div>
         </div>
