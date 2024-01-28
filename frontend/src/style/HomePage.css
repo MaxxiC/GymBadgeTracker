@@ -86,3 +86,55 @@ body {
     color: #fff;
     outline: none;
   }
+
+  .div-drop {
+    min-width: 90dvw;
+    min-height: 90dvh;
+  }
+
+
+
+  /* Aggiungi queste regole CSS al tuo foglio di stile */
+
+.file-input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.file-input-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  border: 2px dashed #ccc;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.file-input-label.dragging {
+  background: #f0f0f0;
+}
+
+.file-input-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.file-input {
+  display: none; /* Nascondi l'input effettivo */
+}
+
+.selected-files {
+  margin-top: 10px;
+}
+
+.selected-files p {
+  margin: 5px 0;
+}
+
+.btn-link {
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 10px;
+}
