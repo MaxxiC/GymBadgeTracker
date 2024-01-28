@@ -75,7 +75,7 @@ function getCurrentDateFolder() {
 
 app.post('/upload', multer({ storage: storage }).array('files'), async (req, res) => {
   try {
-    console.log('Files ricevuti con successo!');
+    console.log('-0 Ricevuti ' + req.files.length + ' Files con successo!');
 
     // Esegui le operazioni di modifica sul file appena ricevuto
     const modifiedFilePaths = [];
@@ -84,7 +84,7 @@ app.post('/upload', multer({ storage: storage }).array('files'), async (req, res
         const modifiedFilePath = await modifyFile(file.path);
         modifiedFilePaths.push(modifiedFilePath);
       } catch (error) {
-        console.error(`Errore durante la modifica del file ${file.originalname}:`, error);
+        console.error(`-0 Errore durante la modifica del file ${file.originalname}:`, error);
         // Ignora l'errore e continua con gli altri file
       }
     }
@@ -92,7 +92,7 @@ app.post('/upload', multer({ storage: storage }).array('files'), async (req, res
     // Invia una risposta con i percorsi dei file modificati
     res.status(200).json({ message: 'Files ricevuti e modificati con successo!', modifiedFiles: modifiedFilePaths });
   } catch (error) {
-    console.error('Errore durante il salvataggio dei file:', error);
+    console.error('-0 Errore durante il salvataggio dei file:', error);
     res.status(500).json({ error: 'Errore durante il salvataggio dei file.' });
   }
 });
@@ -116,10 +116,10 @@ async function modifyFile(inputFilePath) {
     // Salva il file modificato
     const outputFilePath = inputFilePath.replace('.xlsx', '-modificato.xlsx');
     await workbook.xlsx.writeFile(outputFilePath);
-    console.log(`File modificato con successo. Risultato salvato in: ${outputFilePath}`);
+    console.log(`-x File modificato con successo. Risultato salvato in: ${outputFilePath}`);
 
   } catch (error) {
-    console.error('Errore durante la modifica del file Excel:', error);
+    console.error('-x Errore durante la modifica del file Excel:', error);
     // Lanciamo un'eccezione per gestire l'errore nella chiamata dell'API
     throw error;
   }
@@ -172,13 +172,13 @@ async function copyResizeAndApplyFilters(workbook, filters) {
         const textLength = cell.value ? cell.value.toString().length : 0;
         maxLength = Math.max(maxLength, textLength);
       });
-      column.width = maxLength ; // Aggiunge un po' di spazio
+      column.width = maxLength + 2; // Aggiunge un po' di spazio
     });
 
-    console.log('Foglio copiato, colonne ridimensionate e filtri applicati.');
+    console.log('-1 Foglio copiato, colonne ridimensionate e filtri applicati.');
 
   } catch (error) {
-    console.error('Errore durante la copia, ridimensionamento e applicazione dei filtri del foglio Excel:', error);
+    console.error('-1 Errore durante la copia, ridimensionamento e applicazione dei filtri del foglio Excel:', error);
     // Lanciamo un'eccezione per gestire l'errore nella chiamata dell'API
     throw error;
   }
@@ -251,13 +251,13 @@ async function checkDuplicateIDs(workbook) {
         const textLength = cell.value ? cell.value.toString().length : 0;
         maxLength = Math.max(maxLength, textLength);
       });
-      column.width = maxLength; // Aggiunge un po' di spazio
+      column.width = maxLength + 2; // Aggiunge un po' di spazio
     });
 
-    console.log('Controllo degli ID duplicati e copia delle righe sottolineate di rosso completati.');
+    console.log('-2 Controllo degli ID duplicati e copia delle righe sottolineate di rosso completati.');
 
   } catch (error) {
-    console.error('Errore durante il controllo degli ID duplicati e la copia delle righe sottolineate di rosso:', error);
+    console.error('-2 Errore durante il controllo degli ID duplicati e la copia delle righe sottolineate di rosso:', error);
     // Lanciamo un'eccezione per gestire l'errore nella chiamata dell'API
     throw error;
   }
