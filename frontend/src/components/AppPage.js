@@ -38,7 +38,20 @@ const AppPage = () => {
         } catch (error) {
             console.error('Errore durante la richiesta all\'API:', error);
         }
+
+        setSelectedFiles(null);
     };
+
+    // delete selected files
+    const handleDeleteFile = (index) => {
+        const updatedFiles = [...selectedFiles];
+        updatedFiles.splice(index, 1);
+        setSelectedFiles(updatedFiles);
+
+        if(selectedFiles.length == 0){
+            setSelectedFiles(null);
+        }
+      };
 
     // drag & drop
     const handleDragEnter = (e) => {
@@ -102,25 +115,36 @@ const AppPage = () => {
                                 multiple
                             />
                         </div>
-                        {selectedFiles && (
-                            <div className="selected-files text-white">
+                        {selectedFiles && selectedFiles.length > 0 && (
+                            <div className="selected-files text-white ">
 
-                                {
-                                    (
-                                        // Se è un array, usa il ciclo for
-                                        (() => {
-                                            const files = [];
-                                            for (let i = 0; i < selectedFiles.length; i++) {
-                                                files.push(<p key={selectedFiles[i].name}>{selectedFiles[i].name}</p>);
-                                            }
-                                            files.push( <button className='btn btn-link m-1' onClick={uploadFiles}>Invia Tutto</button> );
-                                            return files;
-                                        })()
-                                    )
-                                }
+                                <table>
+                                    {
+                                        (
+                                            // Se è un array, usa il ciclo for
+                                            (() => {
+                                                const files = [];
+                                                for (let i = 0; i < selectedFiles.length; i++) {
+                                                    files.push(
+                                                        <tr>
+                                                            <td id={i} className='mx-1'>{selectedFiles[i].name}</td>
+                                                            <td>
+                                                                <button type="button" className="btn btn-danger mx-1" onClick={() => handleDeleteFile(i)} >
+                                                                    <i className="bi bi-trash"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                }
+                                                return files;
+                                            })()
+                                        )
+                                    }
+                                </table>
+                                <button className='btn btn-link m-1' onClick={uploadFiles}>Invia Tutto</button>
                             </div>
                         )}
-                        
+
                     </div>
                 </div>
             </div>
