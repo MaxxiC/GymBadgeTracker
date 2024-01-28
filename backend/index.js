@@ -269,6 +269,59 @@ async function checkDuplicateIDs(workbook) {
 
 
 
+// Endpoint per ottenere il numero di file e i nomi in ordine di creazione
+app.get('/files', (req, res) => {
+  try {
+    const files = getFilesInUploadsFolder();
+    res.json({ count: files.length, files });
+  } catch (error) {
+    console.error('Errore durante la lettura dei file:', error);
+    res.status(500).json({ error: 'Errore durante la lettura dei file.' });
+  }
+});
+
+// Funzione per ottenere tutti i file nelle cartelle "uploads" in modo ricorsivo
+function getFilesInUploadsFolder() {
+  const folderPath = path.join(__dirname, uploadFolder);
+  const filesInfo = [];
+
+  // Funzione ricorsiva per ottenere i file nelle sottocartelle
+  function readFilesRecursively(currentPath) {
+    const files = fs.readdirSync(currentPath);
+
+    files.forEach(file => {
+      const filePath = path.join(currentPath, file);
+      const stats = fs.statSync(filePath);
+
+      if (stats.isDirectory()) {
+        // Se è una cartella, continua la ricerca ricorsiva
+        readFilesRecursively(filePath);
+      } else {
+        // Se è un file e non contiene "-modificato" nel nome, aggiungi le informazioni all'array
+        if (!file.includes('-modificato')) {
+          filesInfo.push({
+            id: filesInfo.length + 1,
+            name: path.relative(folderPath, filePath),
+            creationDate: stats.birthtime,
+          });
+        }
+      }
+    });
+  }
+
+  // Avvia la ricerca ricorsiva dalla cartella principale
+  readFilesRecursively(folderPath);
+
+  // Ordina i file per data di creazione (in ordine decrescente)
+  filesInfo.sort((a, b) => b.creationDate - a.creationDate);
+
+  return filesInfo;
+}
+
+
+
+
+
 
 
 
