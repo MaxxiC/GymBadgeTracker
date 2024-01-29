@@ -8,9 +8,12 @@ const fs = require('fs');
 const fsPromises = require('fs').promises;
 //const xlsx = require('xlsx');
 const ExcelJS = require('exceljs');
+const cors = require('cors');
 
 const app = express();
 const port = 3001;
+
+app.use(cors());
 
 //mongoose
 // mongoose.connect('mongodb://localhost:27017/il_tuo_database', { useNewUrlParser: true, useUnifiedTopology: true });
