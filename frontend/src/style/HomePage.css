@@ -138,3 +138,15 @@ body {
   cursor: pointer;
   margin-top: 10px;
 }
+
+/* css OldFiles comp */
+
+/* Stili per schermi di smartphone con larghezza massima di 768px */
+@media only screen and (min-width: 768px) {
+  /* CSS NON per gli smartphone */
+
+  .tbl-m {
+    max-width: 50%;
+  }
+
+}
