@@ -302,13 +302,15 @@ function getFilesInUploadsFolder() {
       } else {
         // Se è un file e non contiene "-modificato" nel nome, aggiungi le informazioni all'array
         if (!file.includes('-modificato')) {
+          //cartella/nomefile
           const relativePath = path.relative(folderPath, filePath);
+          //scritto per l'url
           const encodedFileName = encodeURIComponent(relativePath).replace(/%20/g, ' '); // Codifica e sostituzione spazi
           const downloadUrl = `/download/${encodedFileName}`; // URL di download con il percorso della cartella
           const downloadUrlModificato = downloadUrl.replace('.', '-modificato.'); // Aggiunge "-modificato" prima dell'estensione
           filesInfo.push({
             id: filesInfo.length + 1,
-            name: relativePath,
+            name: file,
             creationDate: stats.birthtime,
             downloadUrl,
             downloadUrlModificato,
