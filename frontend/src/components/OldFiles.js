@@ -90,7 +90,7 @@ const OldFiles = () => {
                                 <tr id={file.id}>
                                     <td className='mx-1'>{file.name}</td>
                                     <td className='mx-1'>{formatCreationDate(file.creationDate)}</td>
-                                    <td className='mx-1'><a href={file.downloadUrlModificato} className="btn btn-primary" download>
+                                    <td className='mx-1'><a href={`http://localhost:3001${file.downloadUrlModificato}`} className="btn btn-primary" download>
                                         <i className="bi bi-download "></i>
                                     </a></td>
                                 </tr>
