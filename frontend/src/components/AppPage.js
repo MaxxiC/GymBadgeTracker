@@ -127,7 +127,7 @@ const AppPage = () => {
                                                 const files = [];
                                                 for (let i = 0; i < selectedFiles.length; i++) {
                                                     files.push(
-                                                        <tr>
+                                                        <tr key={i}>
                                                             <td id={i} className='mx-1'>{selectedFiles[i].name}</td>
                                                             <td>
                                                                 <button type="button" className="btn btn-danger mx-1" onClick={() => handleDeleteFile(i)} >
