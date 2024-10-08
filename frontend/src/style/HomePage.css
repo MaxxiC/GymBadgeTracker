@@ -124,7 +124,10 @@ body {
 }
 
 
-
+.form-control_login:hover {
+  background: white;
+  color: #000000;
+}
 
 
 
