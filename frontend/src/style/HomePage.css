@@ -3,6 +3,9 @@
 :root {
     --text_color_btn_home: #ffffff;
     --bg_color_btn_home: #450061;
+    /* --color_one: #35005F; */
+    --color_two: #000000;
+    --color_one: #2c003e;
     /* --bg_color_btn_home: #d1892b; */
   }
 
@@ -13,7 +16,7 @@ body {
   }
   
   .container-fluid {
-    background: radial-gradient(circle, #2c003e, #000000); /* Gradient radiale */
+    background: radial-gradient(circle, var(--color_one), var(--color_two)); /* Gradient radiale */
     color: #ffffff;
     min-height: 100vh;
     display: flex;
