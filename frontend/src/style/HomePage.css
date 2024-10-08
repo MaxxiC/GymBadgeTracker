@@ -62,18 +62,27 @@ body {
     width: 50px; /* Altezza massima desiderata */
   }
 
+  .exe-container {
+    background: url('../images/logo512.png') no-repeat center center;
+    background-size: cover;
+    width: 10rem;
+    height: 10rem;
+    border-radius: 50%; /* Rende il contenitore tondo */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Ombra attorno al contenitore */
+}
+
+/* Media Query per schermi più piccoli */
+@media (max-width: 768px) {
+    .exe-container {
+      width: 10rem; /* Larghezza basata sulla dimensione del font radice */
+      height: 9rem; /* Altezza basata sulla dimensione del font radice */
+    }
+}
 
 
 
 
   /* AppPage css */
-
-  .exe-container {
-    background: url('../images/logo512.png') no-repeat center center;
-    background-size: contain; /* o 'cover' a seconda delle tue preferenze */
-    height: 30vh;
-    width: 30vw;
-  }
 
   .inp-hover:hover {
     color: aquamarine;
