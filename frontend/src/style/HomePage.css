@@ -1,112 +1,160 @@
 /* HomePage.css */
 
 :root {
-    --text_color_btn_home: #ffffff;
-    --bg_color_btn_home: #450061;
-    /* --color_one: #35005F; */
-    --color_two: #000000;
-    --color_one: #2c003e;
-    /* --bg_color_btn_home: #d1892b; */
-  }
+  --text_color_btn_home: #ffffff;
+  --bg_color_btn_home: #450061;
+  /* --color_one: #35005F; */
+  --color_one: #2c003e;
+  --color_two: #000000;
+  --color_three: #2c003e98;
+  /* --bg_color_btn_home: #d1892b; */
+}
 
 body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Arial', sans-serif;
-  }
-  
-  .container-fluid {
-    background: radial-gradient(circle, var(--color_one), var(--color_two)); /* Gradient radiale */
-    color: #ffffff;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .row.bg-dark {
-    background-color: rgba(0, 0, 0, 0.8);
-  }
-  
-  .btn-link {
-    color: var(--text_color_btn_home);
-    border-radius: 0.5rem;
-    background: var(--bg_color_btn_home);
-  }
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+}
 
-  .btn-link-h:hover {
-    transition: all 200ms;
-    color: var(--text_color_btn_home);
+.container-fluid {
+  background: radial-gradient(circle, var(--color_one), var(--color_two));
+  /* Gradient radiale */
+  color: #ffffff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.row.bg-dark {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.btn-link {
+  color: var(--text_color_btn_home);
+  border-radius: 0.5rem;
+  background: var(--bg_color_btn_home);
+}
+
+.btn-link-h:hover {
+  transition: all 200ms;
+  color: var(--text_color_btn_home);
   transform: scale(1.04);
-    box-shadow: 0 0 1.1rem rgba(0,0,0,0.08);
-    background: var(--bg_color_btn_home);
-  }
+  box-shadow: 0 0 1.1rem rgba(0, 0, 0, 0.08);
+  background: var(--bg_color_btn_home);
+}
 
-  .form-control {
-    background-color: #ffffff;
-    color: var(--text_color_btn_home);
-    background: var(--bg_color_btn_home);
-    height: 75%;
-    appearance: auto;
-    width: auto;
-    border-radius: 0.5rem;
-    border: 0;
-  }
+.form-control {
+  background-color: #ffffff;
+  color: var(--text_color_btn_home);
+  background: var(--bg_color_btn_home);
+  height: 75%;
+  appearance: auto;
+  width: auto;
+  border-radius: 0.5rem;
+  border: 0;
+}
 
-  .form-control:focus {
-    color: var(--text_color_btn_home);
-    background-color: var(--bg_color_btn_home);
-    
-  }  
-  
-  .logo-container {
-    background: url('../images/logo192.png') no-repeat center center;
-    background-size: contain; /* o 'cover' a seconda delle tue preferenze */
-    height: 50px;
-    width: 50px; /* Altezza massima desiderata */
-  }
+.form-control:focus {
+  color: var(--text_color_btn_home);
+  background-color: var(--bg_color_btn_home);
 
-  .exe-container {
-    background: url('../images/logo512.png') no-repeat center center;
-    background-size: cover;
-    width: 10rem;
-    height: 10rem;
-    border-radius: 50%; /* Rende il contenitore tondo */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Ombra attorno al contenitore */
+}
+
+.logo-container {
+  background: url('../images/logo192.png') no-repeat center center;
+  background-size: contain;
+  /* o 'cover' a seconda delle tue preferenze */
+  height: 50px;
+  width: 50px;
+  /* Altezza massima desiderata */
+}
+
+.exe-container {
+  background: url('../images/logo512.png') no-repeat center center;
+  background-size: cover;
+  width: 10rem;
+  height: 10rem;
+  border-radius: 50%;
+  /* Rende il contenitore tondo */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  /* Ombra attorno al contenitore */
 }
 
 /* Media Query per schermi più piccoli */
 @media (max-width: 768px) {
-    .exe-container {
-      width: 10rem; /* Larghezza basata sulla dimensione del font radice */
-      height: 9rem; /* Altezza basata sulla dimensione del font radice */
-    }
+  .exe-container {
+    width: 10rem;
+    /* Larghezza basata sulla dimensione del font radice */
+    height: 9rem;
+    /* Altezza basata sulla dimensione del font radice */
+  }
 }
 
 
 
 
-  /* AppPage css */
-
-  .inp-hover:hover {
-    color: aquamarine;
-    background-color: var(--bg_color_btn_home);
-  }
-
-  .dragging {
-    background-color: rgba(0, 0, 0, 0.5);
-    border: 2px dashed #ccc;
-    color: #fff;
-    outline: none;
-  }
-
-  .div-drop {
-    min-width: 90dvw;
-    min-height: 90dvh;
-  }
 
 
 
-  /* Aggiungi queste regole CSS al tuo foglio di stile */
+
+
+
+
+
+/* LoginPage */
+
+.login_form{
+  width: '90%';
+  background-color: var(--color_three);
+}
+
+.text-grey{
+  color: gray;
+}
+
+.bg_form_login{
+  background-color: gray;
+}
+
+/* Aggiungi questo CSS per centrare gli input all'interno della card */
+.center_form {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centra gli elementi */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* AppPage css */
+
+.inp-hover:hover {
+  color: aquamarine;
+  background-color: var(--bg_color_btn_home);
+}
+
+.dragging {
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 2px dashed #ccc;
+  color: #fff;
+  outline: none;
+}
+
+.div-drop {
+  min-width: 90dvw;
+  min-height: 90dvh;
+}
+
+
 
 .file-input-container {
   display: flex;
@@ -134,7 +182,8 @@ body {
 }
 
 .file-input {
-  display: none; /* Nascondi l'input effettivo */
+  display: none;
+  /* Nascondi l'input effettivo */
 }
 
 .selected-files {
