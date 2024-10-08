@@ -16,6 +16,13 @@ i18n
           uploadFile: 'Carica File',
           btn_info: 'INFO',
           btn_about: 'ABOUT',
+
+          login_title: 'Esegui l\'accesso per usufruire del servizio',
+          username: 'Utente',
+          username_insert: 'Inserisci il tuo username',
+          password: 'Password',
+          password_insert: 'Inserisci la password',
+          login_send_btn: 'Accedi',
         },
       },
       en: {
@@ -28,6 +35,13 @@ i18n
           uploadFile: 'Upload File',
           btn_info: 'INFO',
           btn_about: 'ABOUT',
+
+          login_title: 'Login Page',
+          username: 'Username',
+          username_insert: 'Insert your username',
+          password: 'Password',
+          password_insert: 'Insert your password',
+          login_send_btn: 'Login',
         },
       },
     },
