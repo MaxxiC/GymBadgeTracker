@@ -9,11 +9,20 @@ const fsPromises = require('fs').promises;
 //const xlsx = require('xlsx');
 const ExcelJS = require('exceljs');
 const cors = require('cors');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const bodyParser = require('body-parser');
+//const connection = require('./db'); // Importa il file di connessione a MySQL
 
 const app = express();
-const port = 3001;
+const PORT = process.env.PORT || 3001; // Usa la porta fornita da Heroku o 3001 in locale
 
 app.use(cors());
+app.use(bodyParser.json()); // Per gestire il body delle richieste in JSON
+
+// Chiave segreta per il JWT
+const JWT_SECRET = 'super_secret_key'; // Usa una chiave segreta sicura in produzione!
+
 
 //mongoose
 // mongoose.connect('mongodb://localhost:27017/il_tuo_database', { useNewUrlParser: true, useUnifiedTopology: true });
@@ -351,7 +360,94 @@ app.get('/download/:fileName', (req, res) => {
 
 
 
+//
+// Routes per autenticazione ecc
+//
+// Route per la registrazione
+app.post('/register', async (req, res) => {
+  const { username, email, password } = req.body;
 
+  if (!username || !email || !password) {
+    return res.status(400).send('Tutti i campi sono obbligatori');
+  }
+
+  // Controlla se l'utente esiste già
+  const userCheckQuery = 'SELECT * FROM users WHERE email = ?';
+  connection.query(userCheckQuery, [email], async (err, results) => {
+    if (err) throw err;
+    if (results.length > 0) {
+      return res.status(400).send('Email già registrata');
+    }
+
+    // Hash della password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Inserisci l'utente nel database
+    const query = 'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)';
+    connection.query(query, [username, email, hashedPassword], (err, result) => {
+      if (err) throw err;
+      res.status(201).send('Utente registrato con successo');
+    });
+  });
+});
+
+
+
+
+// Route per il login
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).send('Email e password sono obbligatori');
+  }
+
+  // Controlla se l'utente esiste
+  const query = 'SELECT * FROM users WHERE email = ?';
+  connection.query(query, [email], async (err, results) => {
+    if (err) throw err;
+    if (results.length === 0) {
+      return res.status(400).send('Email o password non corretti');
+    }
+
+    const user = results[0];
+
+    // Confronta la password
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      return res.status(400).send('Email o password non corretti');
+    }
+
+    // Genera un token JWT
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
+
+    res.json({ message: 'Login riuscito', token });
+  });
+});
+
+
+
+
+// Middleware per verificare il JWT
+const authenticateToken = (req, res, next) => {
+  const token = req.headers['authorization'];
+  if (!token) {
+    return res.status(401).send('Accesso negato. Nessun token fornito.');
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).send('Token non valido');
+    }
+    req.user = user; // Aggiungi l'utente verificato alla richiesta
+    next();
+  });
+};
+
+// Rotta protetta (esempio)
+app.get('/profile', authenticateToken, (req, res) => {
+  res.send(`Benvenuto, utente con ID: ${req.user.id}`);
+});
 
 
 
@@ -363,21 +459,8 @@ app.get('/ciao', (req, res) => {
   res.send('Ciao');
 });
 
-app.get('/on', async (req, res) => {
-  try {
-    const risultato = await Valore.findOne({ chiave: 'nome' });
 
-    if (risultato) {
-      res.send(`Il valore per la chiave 'nome' è: ${risultato.valore}`);
-    } else {
-      res.send('Valore non trovato nel database.');
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Errore nella ricerca nel database.');
-  }
-});
 
-app.listen(port, () => {
-  console.log(`Server in ascolto sulla porta ${port}`);
+app.listen(PORT, () => {
+  console.log(`Server in ascolto sulla porta ${PORT}`);
 });
