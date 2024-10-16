@@ -1,0 +1,45 @@
+# Node.js
+node_modules/
+
+# Logs
+logs
+*.log
+
+# Build files
+build/
+dist/
+
+# Dependency directories
+backend/node_modules/
+frontend/node_modules/
+
+# Environment files
+backend/.env
+
+# Uploaded files
+backend/uploads/
+
+# IDE files
+.vscode/
+.idea/
+
+# Compiled files
+*.class
+*.jar
+
+# Mac OS system files
+.DS_Store
+
+# Editor-specific files
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
+*.suo
+*.user
+*.userosscache
+*.suo
+*.suo
