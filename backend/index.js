@@ -1,7 +1,7 @@
 // index.js
 const express = require('express');
 const mongoose = require('mongoose');
-const Valore = require('./db_model/databaseModel'); // Imposta il percorso corretto
+require('dotenv').config();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -12,7 +12,10 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
-//const connection = require('./db'); // Importa il file di connessione a MySQL
+const connectDB = require('./db');  // Assumendo che il file di connessione si chiami db.js
+
+// Connetti a MongoDB prima di avviare il server
+connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 3001; // Usa la porta fornita da Heroku o 3001 in locale

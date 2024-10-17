@@ -1,19 +1,18 @@
-// db.js
-const mysql = require('mysql2');
+const mongoose = require('mongoose');
 
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'password',
-  database: 'your_db_name'
-});
+const uri = process.env.MONGO_URI;
+const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } };
 
-connection.connect((err) => {
-  if (err) {
-    console.error('Error connecting to MySQL:', err);
-    return;
+async function connectDB() {
+  try {
+    // Collega a MongoDB usando la connessione Mongoose
+    await mongoose.connect(uri, clientOptions);
+    console.log("Successfully connected to the GymBadgeTracker database!");
+  } catch (error) {
+    console.error("Error connecting to the database:", error);
+    process.exit(1);  // Esce se la connessione fallisce
   }
-  console.log('Connected to MySQL database');
-});
+}
 
-module.exports = connection;
+// Esporta la funzione in modo che possa essere usata altrove
+module.exports = connectDB;
