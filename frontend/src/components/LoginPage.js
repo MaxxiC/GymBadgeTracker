@@ -8,6 +8,9 @@ import '../style/HomePage.css'; // Assicurati che questo stile venga applicato
 import MainBar from './MainBar';
 
 const LoginPage = () => {
+    // Usa la variabile d'ambiente
+    const apiUrl = process.env.REACT_APP_API_URL;
+
     const { t } = useTranslation();
     const { dispatch } = useAuthContext();
     const [username, setUsername] = useState('');
@@ -22,9 +25,9 @@ const LoginPage = () => {
         if (username && password) {
             try {
                 // Invia la richiesta POST al server con le credenziali
-                const response = await axios.post('http://localhost:3001/login', { 
-                    username: username, 
-                    password 
+                const response = await axios.post(`${apiUrl}/login`, {
+                    username: username,
+                    password
                 });
 
                 // Estrarre il token dalla risposta del server
@@ -61,7 +64,7 @@ const LoginPage = () => {
                 <div className="card login_form">
                     <div className="card-body">
                         <h5 className="card-title text-center text-white mb-3">{t('login_title')}</h5>
-                        
+
                         <form onSubmit={handleLogin}>
                             <div className="my-3 center_form">
                                 <label htmlFor="username" className="form-label text-grey">{t('username')}</label>
