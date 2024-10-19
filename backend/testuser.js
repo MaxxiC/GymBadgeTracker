@@ -6,6 +6,18 @@ const FileOutModel = require('./db_model/fileOutModel');
 const FileStatisticsModel = require('./db_model/file_statisticsModel');
 const ActionsLogModel = require('./db_model/actions_logModel');
 
+const bcrypt = require('bcryptjs');
+
+const password = 'hashedpassword123';  // La password da hashare
+
+bcrypt.hash(password, 10, (err, hash) => {
+    if (err) {
+        console.error('Errore durante l\'hashing:', err);
+    } else {
+        console.log('Password hashata:', hash);
+    }
+});
+
 // Route per creare un utente di test e riempire le collezioni
 router.get('/testuser', async (req, res) => {
   try {
@@ -17,7 +29,7 @@ router.get('/testuser', async (req, res) => {
       const newUser = new UserModel({
         username: 'testuser123',
         email: 'testuser123@example.com',
-        password_hash: 'hashedpassword123',  // Assumi che la password sia già hashata
+        password_hash: password,  // Assumi che la password sia già hashata
         profile_image: null,  // Nessuna immagine per questo test
       });
 

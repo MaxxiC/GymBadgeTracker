@@ -400,36 +400,46 @@ app.post('/register', async (req, res) => {
 
 
 
-// Route per il login
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).send('Email e password sono obbligatori');
+// Route per il login
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    console.log('username o password mancanti');
+    return res.status(400).send('username e password sono obbligatori');
   }
 
-  // Controlla se l'utente esiste
-  const query = 'SELECT * FROM users WHERE email = ?';
-  connection.query(query, [email], async (err, results) => {
-    if (err) throw err;
-    if (results.length === 0) {
-      return res.status(400).send('Email o password non corretti');
+  try {
+    // Cerca l'utente nel database
+    const user = await UserModel.findOne({ username: username });
+
+    if (!user) {
+      console.log('Utente non trovato');
+      return res.status(400).send('username o password non corretti');
     }
 
-    const user = results[0];
-
-    // Confronta la password
+    // Confronta la password hashata
     const isMatch = await bcrypt.compare(password, user.password_hash);
+    
     if (!isMatch) {
-      return res.status(400).send('Email o password non corretti');
+      console.log('Password non corrispondente');
+      return res.status(400).send('username o password non corretti');
+    } else {
+      console.log('Password tutto ok');
     }
 
-    // Genera un token JWT
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
+    // Se tutto è corretto, genera il token JWT
+    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    console.log('Login riuscito, token generato:', token);
 
     res.json({ message: 'Login riuscito', token });
-  });
+  } catch (err) {
+    console.error('Errore durante il login:', err);
+    res.status(500).send('Errore interno del server');
+  }
 });
+
 
 
 
