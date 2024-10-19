@@ -7,7 +7,7 @@ const ActionsLogSchema = new mongoose.Schema({
     enum: ['upload', 'download', 'login'], 
     required: true 
   },
-  file_id: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },  // Collegato a un file (può essere null)
+  file_id: { type: mongoose.Schema.Types.ObjectId, ref: 'FileIn' },  // Collegato a un file (può essere null)
   created_at: { type: Date, default: Date.now }
 });
 
