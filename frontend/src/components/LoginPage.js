@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useAuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';  // Aggiungi Axios per le richieste HTTP
 import '../style/HomePage.css'; // Assicurati che questo stile venga applicato
 import MainBar from './MainBar';
 
@@ -11,19 +12,45 @@ const LoginPage = () => {
     const { dispatch } = useAuthContext();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');  // Per visualizzare eventuali errori
     const navigate = useNavigate(); // Usa useNavigate per la navigazione
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault(); // Previene il comportamento di submit predefinito del form
+        setError('');  // Resetta il messaggio di errore
+
         if (username && password) {
-            const expiresAt = new Date().getTime() + 5 * 60 * 1000; // 5 minuti
-            const user = { username };
+            try {
+                // Invia la richiesta POST al server con le credenziali
+                const response = await axios.post('http://localhost:3001/login', { 
+                    username: username, 
+                    password 
+                });
 
-            localStorage.setItem('user', JSON.stringify(user));
-            localStorage.setItem('expiresAt', expiresAt.toString());
+                // Estrarre il token dalla risposta del server
+                const { token } = response.data;
 
-            dispatch({ type: 'LOGIN', payload: { user, expiresAt } });
-            navigate('/app');
+                // Salva il token nel localStorage
+                localStorage.setItem('token', token);
+
+                // Puoi anche salvare informazioni sull'utente
+                const expiresAt = new Date().getTime() + 60 * 60 * 1000; // 1 ora di validità del token
+                const user = { username };
+
+                localStorage.setItem('user', JSON.stringify(user));
+                localStorage.setItem('expiresAt', expiresAt.toString());
+
+                // Aggiorna lo stato globale (AuthContext)
+                dispatch({ type: 'LOGIN', payload: { user, expiresAt } });
+
+                // Reindirizza alla pagina /app
+                navigate('/app');
+            } catch (error) {
+                console.error('Errore di login:', error);
+                setError('Credenziali non valide, riprova.');  // Imposta il messaggio di errore
+            }
+        } else {
+            setError('Username e password sono obbligatori');
         }
     };
 
@@ -34,6 +61,7 @@ const LoginPage = () => {
                 <div className="card login_form">
                     <div className="card-body">
                         <h5 className="card-title text-center text-white mb-3">{t('login_title')}</h5>
+                        
                         <form onSubmit={handleLogin}>
                             <div className="my-3 center_form">
                                 <label htmlFor="username" className="form-label text-grey">{t('username')}</label>
@@ -57,6 +85,7 @@ const LoginPage = () => {
                                     className="form-control form-control_login bg_form_login"
                                 />
                             </div>
+                            {error && <div className="alert alert-danger">{error}</div>} {/* Mostra gli errori */}
                             <button type="submit" className="btn btn-primary w-100">
                                 {t('login_send_btn')}
                             </button>
