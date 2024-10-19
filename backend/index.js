@@ -221,14 +221,14 @@ async function checkDuplicateIDs(workbook) {
       cell.font = { bold: true }; // Rende il testo in grassetto
     });
 
-    
+
 
     // Scansiona ogni riga del foglio
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber > 1) {
         // Controllo degli ID duplicati
         const currentID = row.getCell(1).value;
-        
+
         if (!idOccurrences[currentID]) {
           // Prima occorrenza dell'ID, registrala
           idOccurrences[currentID] = [row];
@@ -421,7 +421,7 @@ app.post('/login', async (req, res) => {
 
     // Confronta la password hashata
     const isMatch = await bcrypt.compare(password, user.password_hash);
-    
+
     if (!isMatch) {
       console.log('Password non corrispondente');
       return res.status(400).send('username o password non corretti');

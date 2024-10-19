@@ -11,11 +11,11 @@ const bcrypt = require('bcryptjs');
 const password = 'hashedpassword123';  // La password da hashare
 
 bcrypt.hash(password, 10, (err, hash) => {
-    if (err) {
-        console.error('Errore durante l\'hashing:', err);
-    } else {
-        console.log('Password hashata:', hash);
-    }
+  if (err) {
+    console.error('Errore durante l\'hashing:', err);
+  } else {
+    console.log('Password hashata:', hash);
+  }
 });
 
 // Route per creare un utente di test e riempire le collezioni
