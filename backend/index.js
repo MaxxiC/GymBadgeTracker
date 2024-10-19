@@ -12,10 +12,20 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
+
 const connectDB = require('./db');  // Assumendo che il file di connessione si chiami db.js
+
+const UserModel = require('./db_model/userModel');
+const FileInModel = require('./db_model/fileInModel');
+const FileOutModel = require('./db_model/fileOutModel');
+const FileStatisticsModel = require('./db_model/file_statisticsModel');
+const ActionsLogModel = require('./db_model/actions_logModel');
 
 // Connetti a MongoDB prima di avviare il server
 connectDB();
+
+const testUserRoutes = require('./testuser');  // Percorso del file dove hai definito la route
+
 
 const app = express();
 const PORT = process.env.PORT || 3001; // Usa la porta fornita da Heroku o 3001 in locale
@@ -26,15 +36,8 @@ app.use(bodyParser.json()); // Per gestire il body delle richieste in JSON
 // Chiave segreta per il JWT
 const JWT_SECRET = 'super_secret_key'; // Usa una chiave segreta sicura in produzione!
 
-
-//mongoose
-// mongoose.connect('mongodb://localhost:27017/il_tuo_database', { useNewUrlParser: true, useUnifiedTopology: true });
-// const db = mongoose.connection;
-
-// db.on('error', console.error.bind(console, 'Errore nella connessione al database:'));
-// db.once('open', () => {
-//   console.log('Connesso al database MongoDB');
-// });
+// Includi la route
+app.use('/', testUserRoutes);
 
 
 // Configura multer per gestire l'upload di file nella cartella "uploads"
@@ -451,7 +454,6 @@ const authenticateToken = (req, res, next) => {
 app.get('/profile', authenticateToken, (req, res) => {
   res.send(`Benvenuto, utente con ID: ${req.user.id}`);
 });
-
 
 
 
