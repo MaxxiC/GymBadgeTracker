@@ -13,6 +13,7 @@ const LoginPage = () => {
 
     const { t } = useTranslation();
     const { dispatch } = useAuthContext();
+    const [loading, setLoading] = useState(false);  // Nuovo stato per disabilitare il bottone
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');  // Per visualizzare eventuali errori
@@ -23,10 +24,12 @@ const LoginPage = () => {
         setError('');  // Resetta il messaggio di errore
 
         if (username && password) {
+            setLoading(true);  // Disabilita il bottone di login
+
             try {
                 // Invia la richiesta POST al server con le credenziali
                 const response = await axios.post(`${apiUrl}/login`, {
-                    username: username,
+                    username: username.toLowerCase(),
                     password
                 });
 
@@ -50,7 +53,23 @@ const LoginPage = () => {
                 navigate('/app');
             } catch (error) {
                 console.error('Errore di login:', error);
-                setError('Credenziali non valide, riprova.');  // Imposta il messaggio di errore
+                //setError('Credenziali non valide, riprova.');  // Imposta il messaggio di errore
+
+                // Controlla se è stato attivato il rate limiter o altri errori
+                if (error.response && error.response.status === 429) {
+                    setError('Troppi tentativi di login. Riprova più tardi.');
+                } else if (error.response && error.response.status === 400) {
+                    setError('Credenziali non valide. Riprova.');
+                } else {
+                    setError('Errore di rete o del server.');
+                }
+
+
+            } finally {
+                // Imposta un timeout di 5 secondi per riabilitare il bottone di login
+                setTimeout(() => {
+                    setLoading(false);
+                }, 3000); // Timeout di 3 secondi
             }
         } else {
             setError('Username e password sono obbligatori');
@@ -89,8 +108,10 @@ const LoginPage = () => {
                                 />
                             </div>
                             {error && <div className="alert alert-danger">{error}</div>} {/* Mostra gli errori */}
-                            <button type="submit" className="btn btn-primary w-100">
-                                {t('login_send_btn')}
+                            <button type="submit" className="btn btn-primary w-100"
+                                disabled={loading}  // Disabilita il bottone durante il caricamento
+                            >
+                                {loading ? t('login_loading_btn') : t('login_send_btn')}
                             </button>
                         </form>
                     </div>
