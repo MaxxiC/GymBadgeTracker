@@ -13,6 +13,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 
+const rateLimit = require('express-rate-limit');
 const connectDB = require('./db');  // Assumendo che il file di connessione si chiami db.js
 
 const UserModel = require('./db_model/userModel');
@@ -400,9 +401,17 @@ app.post('/register', async (req, res) => {
 
 
 
+// Configura il rate limiter per la rotta di login
+const loginLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // Durata della finestra: 5 minuti (espressa in millisecondi)
+  max: 10, // Numero massimo di richieste consentite per IP in questa finestra temporale
+  message: "Hai effettuato troppi tentativi di login. Riprova tra 5 minuti.", // Messaggio di errore
+  headers: true, // Invia informazioni aggiuntive come `Retry-After` header
+});
+
 
 // Route per il login
-app.post('/login', async (req, res) => {
+app.post('/login', loginLimiter, async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
