@@ -23,6 +23,7 @@ i18n
           password: 'Password',
           password_insert: 'Inserisci la password',
           login_send_btn: 'Accedi',
+          login_loading_btn: 'Attendi',
         },
       },
       en: {
@@ -42,6 +43,7 @@ i18n
           password: 'Password',
           password_insert: 'Insert your password',
           login_send_btn: 'Login',
+          login_loading_btn: 'Wait',
         },
       },
     },

@@ -79,7 +79,7 @@ const LoginPage = () => {
     return (
         <div className="container-fluid">
             <MainBar />
-            <div className="d-flex justify-content-center align-items-center vh-100">
+            <div className="d-flex justify-content-center align-items-center m-auto">
                 <div className="card login_form">
                     <div className="card-body">
                         <h5 className="card-title text-center text-white mb-3">{t('login_title')}</h5>
