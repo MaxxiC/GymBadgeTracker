@@ -1,7 +1,7 @@
 // components/LoginPage.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthContext } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';  // Aggiungi Axios per le richieste HTTP
 import '../style/HomePage.css'; // Assicurati che questo stile venga applicato
@@ -12,12 +12,13 @@ const LoginPage = () => {
     const apiUrl = process.env.REACT_APP_API_URL;
 
     const { t } = useTranslation();
-    const { dispatch } = useAuthContext();
+    const { dispatch, isAuthenticated } = useAuthContext();
     const [loading, setLoading] = useState(false);  // Nuovo stato per disabilitare il bottone
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');  // Per visualizzare eventuali errori
     const navigate = useNavigate(); // Usa useNavigate per la navigazione
+    const location = useLocation();
 
     const handleLogin = async (e) => {
         e.preventDefault(); // Previene il comportamento di submit predefinito del form
@@ -50,7 +51,8 @@ const LoginPage = () => {
                 dispatch({ type: 'LOGIN', payload: { user, expiresAt } });
 
                 // Reindirizza alla pagina /app
-                navigate('/app');
+                const redirectPath = location.state?.from?.pathname || '/';
+                navigate(redirectPath);  // Torna alla pagina di origine o alla homepage
             } catch (error) {
                 console.error('Errore di login:', error);
                 //setError('Credenziali non valide, riprova.');  // Imposta il messaggio di errore
@@ -75,6 +77,14 @@ const LoginPage = () => {
             setError('Username e password sono obbligatori');
         }
     };
+
+    useEffect(() => {
+        // Assicurati che non ci sia un redirect automatico che potrebbe interferire
+        if (isAuthenticated) {
+            navigate('/app', { replace: true });  // Usa replace solo se strettamente necessario
+        }
+    }, [isAuthenticated]);
+
 
     return (
         <div className="container-fluid">
