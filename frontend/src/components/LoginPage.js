@@ -115,6 +115,7 @@ const LoginPage = () => {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="form-control form-control_login bg_form_login"
+                                    autoComplete="current-password"  // Aggiungi questa riga
                                 />
                             </div>
                             {error && <div className="alert alert-danger">{error}</div>} {/* Mostra gli errori */}

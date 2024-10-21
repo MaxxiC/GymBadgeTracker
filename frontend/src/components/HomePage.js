@@ -23,7 +23,7 @@ const HomePage = () => {
           <div className="col-6 m-auto">
             <h2>{t('welcome')}</h2>
             <p>{t('subtitle')}</p>
-            {isAuthenticated() ? (
+            {isAuthenticated ? (
               <Link to="/app" className="btn btn-primary">
                 {t('goToApp')}
               </Link>

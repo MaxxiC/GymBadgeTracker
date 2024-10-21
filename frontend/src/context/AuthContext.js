@@ -1,5 +1,4 @@
-// src/context/AuthContext.js
-import { createContext, useReducer, useContext } from "react";
+import { createContext, useReducer, useContext, useMemo } from "react";
 
 export const AuthContext = createContext();
 
@@ -25,15 +24,15 @@ export const AuthContextProvider = ({ children }) => {
         expiresAt: localStorage.getItem('expiresAt') || null,
     });
 
-    // Controlla se l'utente è autenticato
-    const isAuthenticated = () => {
+    // Memorizza il risultato dell'autenticazione
+    const isAuthenticated = useMemo(() => {
         const currentTime = new Date().getTime();
         return state.user && state.expiresAt && currentTime < state.expiresAt;
-    };
+    }, [state.user, state.expiresAt]);
 
-    // Salva i dati dell'autenticazione (utente, token, scadenza)
+    // Salva i dati dell'autenticazione
     const saveAuthData = (user, token, expiresIn) => {
-        const expiresAt = new Date().getTime() + expiresIn * 1000; // Scadenza basata su 'expiresIn' del token JWT
+        const expiresAt = new Date().getTime() + expiresIn * 1000;
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('token', token);
         localStorage.setItem('expiresAt', expiresAt);
@@ -52,7 +51,7 @@ export const AuthContextProvider = ({ children }) => {
         <AuthContext.Provider value={{
             user: state.user,
             token: state.token,
-            isAuthenticated,
+            isAuthenticated,  // Ora è un valore memorizzato
             saveAuthData,
             logout,
             dispatch
