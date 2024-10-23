@@ -16,6 +16,8 @@
     "dotenv": "^16.4.5",
     "exceljs": "^4.4.0",
     "express": "^4.21.1",
+    "express-rate-limit": "^7.4.1",
+    "gymtracker-server": "file:",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.1.1",
     "multer": "^1.4.5-lts.1",

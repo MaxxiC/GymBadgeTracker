@@ -5,7 +5,7 @@ const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuthContext();
 
   // Se l'utente non è autenticato, reindirizza a /login
-  return isAuthenticated() ? children : <Navigate to="/login" />;
+  return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
 export default ProtectedRoute;

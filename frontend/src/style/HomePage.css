@@ -20,7 +20,7 @@ body {
   background: radial-gradient(circle, var(--color_one), var(--color_two));
   /* Gradient radiale */
   color: #ffffff;
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -83,7 +83,7 @@ body {
 /* Media Query per schermi più piccoli */
 @media (max-width: 768px) {
   .exe-container {
-    width: 10rem;
+    width: 11rem;
     /* Larghezza basata sulla dimensione del font radice */
     height: 9rem;
     /* Altezza basata sulla dimensione del font radice */

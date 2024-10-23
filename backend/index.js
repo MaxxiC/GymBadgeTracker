@@ -13,6 +13,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 
+const rateLimit = require('express-rate-limit');
 const connectDB = require('./db');  // Assumendo che il file di connessione si chiami db.js
 
 const UserModel = require('./db_model/userModel');
@@ -221,14 +222,14 @@ async function checkDuplicateIDs(workbook) {
       cell.font = { bold: true }; // Rende il testo in grassetto
     });
 
-    
+
 
     // Scansiona ogni riga del foglio
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber > 1) {
         // Controllo degli ID duplicati
         const currentID = row.getCell(1).value;
-        
+
         if (!idOccurrences[currentID]) {
           // Prima occorrenza dell'ID, registrala
           idOccurrences[currentID] = [row];
@@ -400,36 +401,54 @@ app.post('/register', async (req, res) => {
 
 
 
-// Route per il login
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
+// Configura il rate limiter per la rotta di login
+const loginLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // Durata della finestra: 5 minuti (espressa in millisecondi)
+  max: 10, // Numero massimo di richieste consentite per IP in questa finestra temporale
+  message: "Hai effettuato troppi tentativi di login. Riprova tra 5 minuti.", // Messaggio di errore
+  headers: true, // Invia informazioni aggiuntive come `Retry-After` header
+});
 
-  if (!email || !password) {
-    return res.status(400).send('Email e password sono obbligatori');
+
+// Route per il login
+app.post('/login', loginLimiter, async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    console.log('username o password mancanti');
+    return res.status(400).send('username e password sono obbligatori');
   }
 
-  // Controlla se l'utente esiste
-  const query = 'SELECT * FROM users WHERE email = ?';
-  connection.query(query, [email], async (err, results) => {
-    if (err) throw err;
-    if (results.length === 0) {
-      return res.status(400).send('Email o password non corretti');
+  try {
+    // Cerca l'utente nel database
+    const user = await UserModel.findOne({ username: username });
+
+    if (!user) {
+      console.log('Utente non trovato');
+      return res.status(400).send('username o password non corretti');
     }
 
-    const user = results[0];
-
-    // Confronta la password
+    // Confronta la password hashata
     const isMatch = await bcrypt.compare(password, user.password_hash);
+
     if (!isMatch) {
-      return res.status(400).send('Email o password non corretti');
+      console.log('Password non corrispondente');
+      return res.status(400).send('username o password non corretti');
+    } else {
+      console.log('Password tutto ok');
     }
 
-    // Genera un token JWT
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
+    // Se tutto è corretto, genera il token JWT
+    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    console.log('Login riuscito, token generato');
 
     res.json({ message: 'Login riuscito', token });
-  });
+  } catch (err) {
+    console.error('Errore durante il login:', err);
+    res.status(500).send('Errore interno del server');
+  }
 });
+
 
 
 
