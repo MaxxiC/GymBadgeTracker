@@ -127,7 +127,8 @@ app.post('/login', loginLimiter, async (req, res) => {
 app.get('/files', authenticateToken, async (req, res) => {
   try {
     const files = await FileInModel.find({ user_id: req.user.id })
-      .select('file_id file_name created_at n_download');
+      .select('file_id file_name created_at n_download')
+      .sort({ created_at: -1 });
 
     res.json({ count: files.length, files });
   } catch (error) {
