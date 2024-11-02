@@ -113,14 +113,15 @@ const OldFiles = () => {
         const date = new Date(creationDate);
 
         if (isSameDay(date, today)) {
-            // Se è della stessa ora, confronta i minuti
-            if (isSameHour(date, today)) {
-                const minutesAgo = Math.floor((today - date) / (1000 * 60));
-                return `${minutesAgo}m fa`;
+            const timeDifferenceInMinutes = Math.floor((today - date) / (1000 * 60));
+
+            // Se è della stessa ora, mostra "x minuti fa"
+            if (timeDifferenceInMinutes < 60) {
+                return `${timeDifferenceInMinutes}m fa`;
             }
 
-            // Altrimenti, mostra "x ore fa"
-            const hoursAgo = Math.floor((today - date) / (1000 * 60 * 60));
+            // Se è meno di 24 ore fa ma più di 60 minuti, mostra "x ore fa"
+            const hoursAgo = Math.floor(timeDifferenceInMinutes / 60);
             return `${hoursAgo}h fa`;
         } else if (isSameDay(date, new Date(today.getTime() - 24 * 60 * 60 * 1000))) {
             // Ieri, mostra "Ieri"
