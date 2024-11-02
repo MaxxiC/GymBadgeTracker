@@ -8,18 +8,44 @@ const OldFiles = () => {
     const { t } = useTranslation();
     const [files, setFiles] = useState([]);
 
-    useEffect(() => {
-        // Funzione per ottenere i dati dall'API
-        const fetchData = async () => {
-            try {
-                const response = await fetch('http://localhost:3001/files');
-                const data = await response.json();
-                setFiles(data.files);
-            } catch (error) {
-                console.error('Errore durante il recupero dei dati dall\'API', error);
-            }
-        };
 
+    // Funzione per ottenere i dati dall'API
+    const fetchData = async () => {
+        try {
+            const token = localStorage.getItem('token'); // Recupera il token JWT
+            if (!token) {
+                console.error('Token di autenticazione non trovato.');
+                return;
+            }
+
+            const response = await fetch('http://localhost:3001/files', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Invia il token nell'header Authorization
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            // Verifica se la risposta è ok (status 200)
+            if (!response.ok) {
+                if (response.status === 401) {
+                    console.error('Non autorizzato. Effettua di nuovo il login.');
+                    // Aggiungi qui eventuale gestione del logout o reindirizzamento al login
+                } else {
+                    console.error('Errore durante la richiesta: ', response.status);
+                }
+                return;
+            }
+
+            const data = await response.json();
+            setFiles(data.files);
+        } catch (error) {
+            console.error('Errore durante il recupero dei dati dall\'API:', error);
+        }
+    };
+
+
+    useEffect(() => {
         // Esegui fetchData iniziale
         fetchData();
 
@@ -29,6 +55,57 @@ const OldFiles = () => {
         // Pulizia dell'intervallo quando il componente viene smontato
         return () => clearInterval(intervalId);
     }, []); // L'array vuoto assicura che l'effetto venga eseguito solo all'inizio
+
+
+
+
+
+    const handleDownload = async (fileId) => {
+        try {
+            const token = localStorage.getItem('token');
+
+            // Primo fetch per ottenere nome e dati del file
+            const response = await fetch(`http://localhost:3001/download/${fileId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                // Ricevi il nome del file dall'intestazione o JSON del server
+                const disposition = response.headers.get('Content-Disposition');
+                let fileName = 'file_modificato.xlsx';
+                
+                if (disposition) {
+                    console.log(disposition);
+                    fileName = disposition.split('filename=')[1]?.replace(/"/g, '') || 'file_modificato.xlsx';
+                    console.log(fileName);
+                  } else {
+                    console.error('Intestazione Content-Disposition non trovata');
+                  }
+
+                // const fileName = disposition ? disposition.split('filename=')[1].replace(/"/g, '')
+                //     : 'file_modificato.xlsx';
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                console.log('Download riuscito!');
+            } else {
+                console.error('Errore durante il download del file.');
+            }
+        } catch (error) {
+            console.error('Errore durante il download del file:', error);
+        }
+    };
+
+
 
 
     const formatCreationDate = (creationDate) => {
@@ -63,11 +140,11 @@ const OldFiles = () => {
 
     const isSameDay = (date1, date2) => {
         return (
-          date1.getFullYear() === date2.getFullYear() &&
-          date1.getMonth() === date2.getMonth() &&
-          date1.getDate() === date2.getDate()
+            date1.getFullYear() === date2.getFullYear() &&
+            date1.getMonth() === date2.getMonth() &&
+            date1.getDate() === date2.getDate()
         );
-      };
+    };
 
 
 
@@ -87,12 +164,12 @@ const OldFiles = () => {
                         </thead>
                         <tbody>
                             {files.map(file => (
-                                <tr id={file.id}>
-                                    <td className='mx-1'>{file.name}</td>
-                                    <td className='mx-1'>{formatCreationDate(file.creationDate)}</td>
-                                    <td className='mx-1'><a href={`http://localhost:3001${file.downloadUrlModificato}`} className="btn btn-primary" download>
+                                <tr key={file.created_at}>
+                                    <td className='mx-1'>{file.file_name}</td>
+                                    <td className='mx-1'>{formatCreationDate(file.created_at)}</td>
+                                    <td className='mx-1'><button onClick={() => handleDownload(file._id)} className="btn btn-primary" >
                                         <i className="bi bi-download "></i>
-                                    </a></td>
+                                    </button></td>
                                 </tr>
                             ))}
                         </tbody>

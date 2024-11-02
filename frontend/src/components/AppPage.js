@@ -14,25 +14,36 @@ const AppPage = () => {
 
     // upload file
     const uploadFiles = async () => {
-        if (!selectedFiles) {
+        if (!selectedFiles || selectedFiles.length === 0) {
             console.error('Nessun file selezionato.');
             return;
         }
 
         const formData = new FormData();
-        for (let i = 0; i < selectedFiles.length; i++) {
-            formData.append('files', selectedFiles[i]);
+        Array.from(selectedFiles).forEach(file => {
+            formData.append('files', file);  // Aggiungi ogni file singolarmente a 'files'
+        });
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.error("Token non trovato nel localStorage");
+            return;
         }
+
 
         try {
             const response = await fetch('http://localhost:3001/upload', {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
                 body: formData,
             });
 
-            // Gestisci la risposta dell'API
             if (response.ok) {
                 console.log('File inviati con successo!');
+            } else if (response.status === 401) {
+                console.error('Non autorizzato. Effettua il login.');
             } else {
                 console.error('Errore durante l\'invio dei file.');
             }
@@ -49,10 +60,10 @@ const AppPage = () => {
         updatedFiles.splice(index, 1);
         setSelectedFiles(updatedFiles);
 
-        if(selectedFiles.length == 0){
+        if (selectedFiles.length == 0) {
             setSelectedFiles(null);
         }
-      };
+    };
 
     // drag & drop
     const handleDragEnter = (e) => {
