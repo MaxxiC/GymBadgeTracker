@@ -28,7 +28,9 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 3001; // Usa la porta fornita da Heroku o 3001 in locale
 
-app.use(cors());
+app.use(cors({
+  exposedHeaders: ['Content-Disposition'],
+}));
 app.use(bodyParser.json()); // Per gestire il body delle richieste in JSON
 
 // Chiave segreta per il JWT
@@ -60,6 +62,7 @@ const authenticateToken = (req, res, next) => {
     if (err) return res.status(403).json({ error: 'Token non valido' });
 
     req.user = user; // Assicura che req.user sia impostato
+    req.userId = user.id; // Imposta req.userId per facilità di accesso
     next();
   });
 };
@@ -123,7 +126,7 @@ app.post('/login', loginLimiter, async (req, res) => {
 // Endpoint per ottenere il numero di file e i nomi in ordine di creazione
 app.get('/files', authenticateToken, async (req, res) => {
   try {
-    const files = await FileOutModel.find({ user_id: req.user.id })
+    const files = await FileInModel.find({ user_id: req.user.id })
       .select('file_id file_name created_at n_download');
 
     res.json({ count: files.length, files });
@@ -135,6 +138,24 @@ app.get('/files', authenticateToken, async (req, res) => {
 
 
 
+
+// Estrai il nome del file e l'estensione separatamente
+const addSuffixToFilename = (filename, suffix) => {
+  // Trova l'ultima occorrenza del punto per separare nome ed estensione
+  const dotIndex = filename.lastIndexOf('.');
+  
+  if (dotIndex === -1) {
+    // Se non c'è un'estensione, aggiungi semplicemente il suffisso
+    return `${filename}${suffix}`;
+  }
+
+  // Separa il nome base e l'estensione
+  const baseName = filename.substring(0, dotIndex);
+  const extension = filename.substring(dotIndex);
+
+  // Ritorna il nome modificato
+  return `${baseName}${suffix}${extension}`;
+};
 
 
 
@@ -159,11 +180,13 @@ app.post('/upload', authenticateToken, upload.array('files', 10), async (req, re
       // 2. Processa il file
       const modifiedData = await processFile(buffer);
 
+      const modifiedFileName = addSuffixToFilename(originalname, '_modificato');
+
       // 3. Salva il file modificato in FileOutModel
       const modifiedFile = new FileOutModel({
         user_id: req.userId,
         file_id: newFile._id,
-        file_name: `${originalname}_modified`,
+        file_name: modifiedFileName,
         file_data: modifiedData,
       });
       await modifiedFile.save();
@@ -188,7 +211,7 @@ app.post('/upload', authenticateToken, upload.array('files', 10), async (req, re
 app.get('/download/:fileId', authenticateToken, async (req, res) => {
   try {
     // Trova il file modificato in base all'ID e all'utente autenticato
-    const file = await FileOutModel.findOne({ _id: req.params.fileId, user_id: req.userId });
+    const file = await FileOutModel.findOne({ file_id: req.params.fileId, user_id: req.user.id });
 
     if (!file) {
       return res.status(404).json({ message: 'File non trovato o accesso non autorizzato' });
@@ -203,8 +226,11 @@ app.get('/download/:fileId', authenticateToken, async (req, res) => {
       'Content-Disposition': `attachment; filename="${file.file_name}"`,
       'Content-Type': 'application/octet-stream',
     });
-
-    res.send(file.file_data);
+    
+    //res.setHeader('Content-Disposition', `attachment; filename="${file.file_name}"`);
+    //res.setHeader('Content-Type', 'application/octet-stream');
+    
+    res.end(file.file_data);    
   } catch (error) {
     console.error('Errore durante il download del file:', error);
     res.status(500).json({ message: 'Errore durante il download del file.' });
