@@ -5,7 +5,10 @@ const FileInSchema = new mongoose.Schema({
   file_name: { type: String, required: true },
   file_data: { type: Buffer, required: true },  // Salvare il file come BLOB
   rows_processed: { type: Number, default: 0 },  // Numero di righe elaborate
-  created_at: { type: Date, default: Date.now }
+  people_processed: { type: Number, default: 0 },  // Numero di utenti della palestra singoli trovati nel file
+  created_at: { type: Date, default: Date.now },
+  deleted: { type: Boolean, default: false },
+  deleted_date: { type: Date, default: null }
 });
 
 module.exports = mongoose.model('FileIn', FileInSchema);
