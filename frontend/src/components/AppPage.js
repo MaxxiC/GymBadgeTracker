@@ -7,6 +7,8 @@ import OldFiles from './OldFiles';
 
 const AppPage = () => {
     const { t } = useTranslation();
+    // Usa la variabile d'ambiente
+    const apiUrl = process.env.REACT_APP_API_URL;
 
     const [selectedFiles, setSelectedFiles] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -32,7 +34,7 @@ const AppPage = () => {
 
 
         try {
-            const response = await fetch('http://localhost:3001/upload', {
+            const response = await fetch(`${apiUrl}/upload`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
