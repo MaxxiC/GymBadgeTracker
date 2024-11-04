@@ -44,8 +44,14 @@ const AppPage = () => {
                 console.log('File inviati con successo!');
             } else if (response.status === 401) {
                 console.error('Non autorizzato. Effettua il login.');
+                const errorData = await response.json();
+                console.error('Errore dal server:', errorData.message);
+                alert(errorData.message); // Opzionale, per mostrare un messaggio all'utente
             } else {
                 console.error('Errore durante l\'invio dei file.');
+                const errorData = await response.json();
+                console.error('Errore dal server:', errorData.message);
+                alert(errorData.message); // Opzionale, per mostrare un messaggio all'utente
             }
         } catch (error) {
             console.error('Errore durante la richiesta all\'API:', error);
