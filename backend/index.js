@@ -155,6 +155,7 @@ app.post('/login', loginLimiter, async (req, res) => {
     await user.save();
 
     // Chiama la funzione di creazione log dopo l'operazione
+    const ipAddress = req.ip || req.connection.remoteAddress;
     const userAgent = req.headers['user-agent'];
     const result = parser.setUA(userAgent).getResult();
 
@@ -165,7 +166,7 @@ app.post('/login', loginLimiter, async (req, res) => {
     console.log(`Dispositivo: ${deviceType}, OS: ${osName}, Browser: ${browserName}`);
 
     // Puoi includere queste informazioni nel log
-    const logMessage = `Login riuscito da ${deviceType} con OS ${osName} e browser ${browserName}`;
+    const logMessage = `Login riuscito da IP: ${ipAddress} - ${deviceType} con OS ${osName} e browser ${browserName}`;
     await createLogDB(user.username, 'login', logMessage);
 
     res.json({ message: 'Login riuscito', token });
