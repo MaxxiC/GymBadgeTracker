@@ -365,189 +365,103 @@ app.get('/download/:fileId', authenticateToken, async (req, res) => {
 //
 
 
-// utils/processFile.js
+// Funzione per copiare un foglio di lavoro
+function copyWorksheet(originalWorksheet, workbook, newSheetName) {
+  const newWorksheet = workbook.addWorksheet(newSheetName);
+  originalWorksheet.eachRow({ includeEmpty: true }, (row) => {
+    const newRow = newWorksheet.addRow(row.values);
+    newRow.commit();
+  });
+  //console.log(`Foglio copiato in "${newSheetName}".`);
+  return newWorksheet;
+}
+
+// Funzione per controllare se un valore è presente in un array
+function isValueExcluded(value, filterValues) {
+  return filterValues.some(filter => value && value.includes(filter));
+}
+
+// Funzione per evidenziare righe duplicate e aggiungere il conteggio
+function highlightAndCountDuplicates(worksheet, filterValues, newColumn, filteredWorksheet) {
+  const lastRow = worksheet.lastRow.number;
+
+  for (let i = 2; i <= lastRow; i++) {
+    const currentRow = worksheet.getRow(i);
+    const currentID = currentRow.getCell(1).value;
+    const cellValueCol6 = currentRow.getCell(6).value;
+    const duplicateCount = worksheet.getColumn(1).values.filter(val => val === currentID).length;
+    
+    if (duplicateCount > 1 && !isValueExcluded(cellValueCol6, filterValues)) {
+      currentRow.eachCell(cell => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFF0000' }, // Rosso
+        };
+      });
+      currentRow.getCell(newColumn).value = duplicateCount;
+      currentRow.commit();
+      
+      // Copia la riga nel foglio delle righe duplicate
+      filteredWorksheet.addRow(currentRow.values).commit();
+      //console.log(`Riga ${i} duplicata e copiata in "RigheCoinvolte".`);
+    }
+  }
+}
+
+// Funzione per ridimensionare le colonne in un foglio
+function autoResizeColumns(worksheet) {
+  worksheet.columns.forEach(column => {
+    let maxLength = 0;
+    column.eachCell({ includeEmpty: true }, cell => {
+      const textLength = cell.value ? cell.value.toString().length : 0;
+      maxLength = Math.max(maxLength, textLength);
+    });
+    column.width = maxLength + 2;
+  });
+  //console.log(`Colonne ridimensionate per il foglio "${worksheet.name}".`);
+}
+
+// Funzione principale per elaborare il file Excel
 async function processFile(buffer) {
-  // Modifica i dati come necessario, trasformando il buffer originale
-  const modifiedBuffer = Buffer.from(buffer); // Clona il buffer originale
-
-  // Applica eventuali trasformazioni specifiche
-  await new Promise((resolve) => setTimeout(resolve, 2000)); // Delay per simulare un'elaborazione
-
-  return modifiedBuffer;
-}
-
-
-
-// Utilizzo della funzione modifyFile
-async function modifyFile(inputFilePath) {
   try {
-    // Carica il file Excel con exceljs
+    console.log('-------');
+    console.log('---Inizio elaborazione del file...');
+
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(inputFilePath);
+    await workbook.xlsx.load(buffer);
+    //console.log('Workbook caricato con successo.');
 
-    // Chiamiamo la funzione per copiare, ridimensionare e applicare filtri
-    const filters = ['--', 'STAFF', 'altro_valore_da_escludere']; // Aggiungi i filtri necessari
-    await copyResizeAndApplyFilters(workbook, filters);
+    const originalWorksheet = workbook.getWorksheet(1);
 
-    // Chiamiamo la funzione per il controllo degli ID duplicati
-    await checkDuplicateIDs(workbook);
+    // Crea una copia del foglio originale
+    const modifiedWorksheet = copyWorksheet(originalWorksheet, workbook, 'FoglioModificato');
 
-    // Salva il file modificato
-    const outputFilePath = inputFilePath.replace('.xlsx', '-modificato.xlsx');
-    await workbook.xlsx.writeFile(outputFilePath);
-    console.log(`-x File modificato con successo. Risultato salvato in: ${outputFilePath}`);
+    // Crea un foglio per le righe duplicate
+    const filteredWorksheet = workbook.addWorksheet('RigheCoinvolte');
+    filteredWorksheet.addRow(modifiedWorksheet.getRow(1).values).commit(); // Copia l'intestazione
+
+    // Array di valori da filtrare
+    const filterValues = ['STAFF', '--'];
+    const totalColumns = modifiedWorksheet.columnCount;
+    const newColumn = totalColumns + 1;
+
+    // Evidenzia righe duplicate e copia nel nuovo foglio
+    highlightAndCountDuplicates(modifiedWorksheet, filterValues, newColumn, filteredWorksheet);
+
+    // Ridimensiona le colonne per entrambi i fogli
+    [modifiedWorksheet, filteredWorksheet].forEach(autoResizeColumns);
+
+    console.log('---Elaborazione completata con successo.');
+    console.log('-------');
+    
+    return await workbook.xlsx.writeBuffer();
 
   } catch (error) {
-    console.error('-x Errore durante la modifica del file Excel:', error);
-    // Lanciamo un'eccezione per gestire l'errore nella chiamata dell'API
+    console.error('Errore durante l\'elaborazione:', error);
     throw error;
   }
 }
-
-
-
-// Funzione per copiare il foglio, ridimensionare le colonne e applicare filtri
-async function copyResizeAndApplyFilters(workbook, filters) {
-  try {
-    // Ottieni il primo foglio di lavoro
-    const sourceWorksheet = workbook.getWorksheet(1);
-
-    // Crea un nuovo foglio di lavoro
-    const targetWorksheet = workbook.addWorksheet('CopiaFoglio');
-
-    // Copia i dati dalla sorgente al target e applica i filtri
-    let targetRowNumber = 1; // Indice delle righe nel foglio di destinazione
-
-    sourceWorksheet.eachRow((row, rowNumber) => {
-      const filterValue = row.getCell(6).value;
-
-      // Controlla se la stringa contiene almeno uno dei filtri
-      const filterMatch = filters.some(filter => filterValue && filterValue.includes(filter));
-
-      // Se la riga non soddisfa i filtri, passa alla prossima iterazione
-      if (rowNumber !== 1 && (!filterValue || filterMatch)) {
-        return;
-      }
-
-      // Copia l'intestazione senza filtri
-      if (rowNumber === 1) {
-        row.eachCell((cell, colNumber) => {
-          targetWorksheet.getCell(targetRowNumber, colNumber).value = cell.value;
-        });
-        targetRowNumber++;
-      } else {
-        // Copia i dati dalla sorgente al target
-        row.eachCell((cell, colNumber) => {
-          targetWorksheet.getCell(targetRowNumber, colNumber).value = cell.value;
-        });
-        targetRowNumber++;
-      }
-    });
-
-    // Ridimensiona automaticamente le colonne nel nuovo foglio
-    targetWorksheet.columns.forEach((column) => {
-      let maxLength = 0;
-      column.eachCell({ includeEmpty: true }, (cell) => {
-        const textLength = cell.value ? cell.value.toString().length : 0;
-        maxLength = Math.max(maxLength, textLength);
-      });
-      column.width = maxLength + 2; // Aggiunge un po' di spazio
-    });
-
-    console.log('-1 Foglio copiato, colonne ridimensionate e filtri applicati.');
-
-  } catch (error) {
-    console.error('-1 Errore durante la copia, ridimensionamento e applicazione dei filtri del foglio Excel:', error);
-    // Lanciamo un'eccezione per gestire l'errore nella chiamata dell'API
-    throw error;
-  }
-}
-
-
-// Funzione per il controllo degli ID duplicati e copia delle righe sottolineate di rosso
-async function checkDuplicateIDs(workbook) {
-  try {
-    // Ottieni il foglio di lavoro
-    const worksheet = workbook.getWorksheet('CopiaFoglio');
-
-    // Creiamo un oggetto per tracciare gli ID e le relative occorrenze
-    const idOccurrences = {};
-
-    // Creiamo un nuovo foglio di lavoro per le righe sottolineate di rosso
-    const redRowsWorksheet = workbook.addWorksheet('RigheSottolineateRosse');
-
-    // Aggiungi l'intestazione delle colonne al nuovo foglio
-    const headerRow = redRowsWorksheet.addRow(worksheet.getRow(1).values);
-    headerRow.eachCell((cell) => {
-      cell.font = { bold: true }; // Rende il testo in grassetto
-    });
-
-
-
-    // Scansiona ogni riga del foglio
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber > 1) {
-        // Controllo degli ID duplicati
-        const currentID = row.getCell(1).value;
-
-        if (!idOccurrences[currentID]) {
-          // Prima occorrenza dell'ID, registrala
-          idOccurrences[currentID] = [row];
-        } else {
-          // ID duplicato, aggiungi la riga alle occorrenze
-          idOccurrences[currentID].push(row);
-        }
-      }
-    });
-
-    // Colora di rosso chiaro tutte le occorrenze degli ID duplicati
-    Object.values(idOccurrences).forEach(occurrences => {
-      if (occurrences.length > 1) {
-        occurrences.forEach(row => {
-          row.eachCell((cell) => {
-            cell.fill = {
-              type: 'pattern',
-              pattern: 'solid',
-              fgColor: { argb: 'FFFF9999' }, // Rosso chiaro
-            };
-          });
-
-          // Copia la riga sottolineata di rosso nel nuovo foglio
-          const newRow = redRowsWorksheet.addRow(row.values);
-          // Copia anche lo stile dalla riga originale
-          newRow.eachCell((cell, colNumber) => {
-            const originalCell = row.getCell(colNumber);
-            cell.style = originalCell.style;
-          });
-        });
-      }
-    });
-
-    // Ridimensiona automaticamente le colonne nel nuovo foglio
-    redRowsWorksheet.columns.forEach((column) => {
-      let maxLength = 0;
-      column.eachCell({ includeEmpty: true }, (cell) => {
-        const textLength = cell.value ? cell.value.toString().length : 0;
-        maxLength = Math.max(maxLength, textLength);
-      });
-      column.width = maxLength + 2; // Aggiunge un po' di spazio
-    });
-
-    console.log('-2 Controllo degli ID duplicati e copia delle righe sottolineate di rosso completati.');
-
-  } catch (error) {
-    console.error('-2 Errore durante il controllo degli ID duplicati e la copia delle righe sottolineate di rosso:', error);
-    // Lanciamo un'eccezione per gestire l'errore nella chiamata dell'API
-    throw error;
-  }
-}
-
-
-
-
-
-
-
 
 
 
