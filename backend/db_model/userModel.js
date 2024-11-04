@@ -7,7 +7,7 @@ const UserSchema = new mongoose.Schema({
   profile_image: { type: Buffer },  // Per salvare l'immagine come BLOB
   created_at: { type: Date, default: Date.now },
   latest_login: { type: Date, default: Date.now },
-  n_download_total: { type: Number, default: 0 },  // Numero di download disponibili all'utente
+  n_usage_total: { type: Number, default: 0 },  // Numero di download disponibili all'utente
 });
 
 module.exports = mongoose.model('User', UserSchema);
