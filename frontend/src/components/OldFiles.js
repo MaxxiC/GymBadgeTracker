@@ -7,6 +7,7 @@ import '../style/HomePage.css';
 const OldFiles = () => {
     const { t } = useTranslation();
     const [files, setFiles] = useState([]);
+    const apiUrl = process.env.REACT_APP_API_URL;
 
 
     // Funzione per ottenere i dati dall'API
@@ -18,7 +19,7 @@ const OldFiles = () => {
                 return;
             }
 
-            const response = await fetch('http://localhost:3001/files', {
+            const response = await fetch(`${apiUrl}/files`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`, // Invia il token nell'header Authorization
@@ -65,7 +66,7 @@ const OldFiles = () => {
             const token = localStorage.getItem('token');
 
             // Primo fetch per ottenere nome e dati del file
-            const response = await fetch(`http://localhost:3001/download/${fileId}`, {
+            const response = await fetch(`${apiUrl}/download/${fileId}`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -76,14 +77,14 @@ const OldFiles = () => {
                 // Ricevi il nome del file dall'intestazione o JSON del server
                 const disposition = response.headers.get('Content-Disposition');
                 let fileName = 'file_modificato.xlsx';
-                
+
                 if (disposition) {
                     console.log(disposition);
                     fileName = disposition.split('filename=')[1]?.replace(/"/g, '') || 'file_modificato.xlsx';
                     console.log(fileName);
-                  } else {
+                } else {
                     console.error('Intestazione Content-Disposition non trovata');
-                  }
+                }
 
                 // const fileName = disposition ? disposition.split('filename=')[1].replace(/"/g, '')
                 //     : 'file_modificato.xlsx';
@@ -104,6 +105,37 @@ const OldFiles = () => {
             console.error('Errore durante il download del file:', error);
         }
     };
+
+
+
+    const handleDelete = async (fileId) => {
+        try {
+            const token = localStorage.getItem('token');
+
+            // Primo fetch per ottenere nome e dati del file
+            const response = await fetch(`${apiUrl}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json' // Aggiungi questa intestazione per indicare JSON
+                },
+                body: JSON.stringify({
+                    fileId_todelete: fileId // Serializza l'oggetto come stringa JSON
+                })
+            });
+
+            if (response.ok) {
+                // Esegui fetchData iniziale
+                fetchData();
+                console.log('Eliminazione del file riuscita!');
+            } else {
+                console.error('Errore durante la delete del file.');
+            }
+        } catch (error) {
+            console.error('Errore durante la delete del file:', error);
+        }
+    };
+
 
 
 
@@ -160,7 +192,8 @@ const OldFiles = () => {
                             <tr>
                                 <td className='mx-1'>Name</td>
                                 <td className='mx-1'>Date</td>
-                                <td className='mx-1'>Link</td>
+                                <td className='mx-1'>Download</td>
+                                <td className='mx-1'>Delete</td>
                             </tr>
                         </thead>
                         <tbody>
@@ -170,6 +203,9 @@ const OldFiles = () => {
                                     <td className='mx-1'>{formatCreationDate(file.created_at)}</td>
                                     <td className='mx-1'><button onClick={() => handleDownload(file._id)} className="btn btn-primary" >
                                         <i className="bi bi-download "></i>
+                                    </button></td>
+                                    <td className='mx-1'><button onClick={() => handleDelete(file._id)} className="btn btn-danger" >
+                                        <i className="bi bi-trash "></i>
                                     </button></td>
                                 </tr>
                             ))}
