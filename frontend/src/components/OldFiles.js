@@ -108,6 +108,16 @@ const OldFiles = () => {
 
 
 
+
+
+    const catchDelete = (fileId) => {
+        const userConfirmed = window.confirm(`Vuoi davvero procedere all'eliminazione?`);
+        if (userConfirmed) {
+            // Logica per l'azione di conferma
+            handleDelete(fileId);
+        }
+    };
+
     const handleDelete = async (fileId) => {
         try {
             const token = localStorage.getItem('token');
@@ -204,7 +214,7 @@ const OldFiles = () => {
                                     <td className='mx-1'><button onClick={() => handleDownload(file._id)} className="btn btn-primary" >
                                         <i className="bi bi-download "></i>
                                     </button></td>
-                                    <td className='mx-1'><button onClick={() => handleDelete(file._id)} className="btn btn-danger" >
+                                    <td className='mx-1'><button onClick={() => catchDelete(file._id)} className="btn btn-danger" >
                                         <i className="bi bi-trash "></i>
                                     </button></td>
                                 </tr>
