@@ -7,7 +7,9 @@ import i18n from './i18n';
 import HomePage from './components/HomePage';
 import AppPage from './components/AppPage';
 import LoginPage from './components/LoginPage';
+import RegisterPage from './components/RegisterPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import RegistrationRoute from './components/RegistrationRoute';
 import { AuthContextProvider } from './context/AuthContext';
 import './style/index.css';
 
@@ -26,6 +28,11 @@ root.render(
               <ProtectedRoute>
                 <AppPage />
               </ProtectedRoute>
+            } />
+            <Route path="/register" element={
+              <RegistrationRoute>
+                <RegisterPage />
+              </RegistrationRoute>
             } />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
