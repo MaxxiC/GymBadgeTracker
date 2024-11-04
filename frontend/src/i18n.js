@@ -17,6 +17,7 @@ i18n
           uploadFile: 'Carica File',
           btn_info: 'INFO',
           btn_about: 'ABOUT',
+          btn_logout: 'LOGOUT',
 
           login_title: 'Esegui l\'accesso per usufruire del servizio',
           username: 'Utente',
@@ -38,6 +39,7 @@ i18n
           uploadFile: 'Upload File',
           btn_info: 'INFO',
           btn_about: 'ABOUT',
+          btn_logout: 'LOGOUT',
 
           login_title: 'Login Page',
           username: 'Username',

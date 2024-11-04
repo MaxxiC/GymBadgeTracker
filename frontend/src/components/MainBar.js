@@ -4,10 +4,17 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import '../style/HomePage.css';
+import { useAuthContext } from '../context/AuthContext';
 
 const MainBar = () => {
     const navigate = useNavigate();
     const { t, i18n } = useTranslation();
+    const { logout, isAuthenticated } = useAuthContext(); // Ottieni la funzione di logout dal contesto
+
+    const handleLogout = () => {
+        logout(); // Esegui il logout
+        navigate('/'); // Reindirizza alla pagina di login dopo il logout
+    };
 
     const changeLanguage = (lng) => {
         i18n.changeLanguage(lng).then(() => {
@@ -25,6 +32,7 @@ const MainBar = () => {
 
             </div>
             <div className="col-2 d-flex align-items-center justify-content-end">
+                {isAuthenticated && <button className="btn btn-link btn-link-h m-1 text-decoration-none" onClick={handleLogout}>{t('btn_logout')}</button>}
                 <button className="btn btn-link btn-link-h m-1 text-decoration-none" onClick={() => navigate(`/info`)}>{t('btn_info')}</button>
                 <button className="btn btn-link btn-link-h m-1 text-decoration-none" onClick={() => navigate(`/about`)}>{t('btn_about')}</button>
                 <select
