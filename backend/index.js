@@ -472,34 +472,60 @@ async function processFile(buffer) {
 
 
 //
-// Routes rnd
+// Routes finali
 //
-// Route per la registrazione
-app.post('/register', async (req, res) => {
+
+// Middleware per verificare l'utente autorizzato
+async function verifyAuthorizedUser(req, res, next) {
+  try {
+    console.log("entroooooo");
+    
+    // Assumi che l'utente sia autenticato e che l'identità sia disponibile nel `req.user`
+    if (req.user && req.user.username === 'testuser123') {
+      next(); // Passa alla route successiva
+    } else {
+      return res.status(403).send('Accesso negato: solo testuser123 può eseguire questa operazione');
+    }
+  } catch (error) {
+    console.error('Errore durante la verifica dell\'utente:', error);
+    res.status(500).send('Errore interno del server');
+  }
+}
+
+// Route per la registrazione con verifica dell'utente autorizzato
+app.post('/register', authenticateToken, verifyAuthorizedUser, async (req, res) => {
   const { username, email, password } = req.body;
 
+  console.log("tentativo--------");
+  
   if (!username || !email || !password) {
     return res.status(400).send('Tutti i campi sono obbligatori');
   }
 
-  // Controlla se l'utente esiste già
-  const userCheckQuery = 'SELECT * FROM users WHERE email = ?';
-  connection.query(userCheckQuery, [email], async (err, results) => {
-    if (err) throw err;
-    if (results.length > 0) {
+  try {
+    // Controlla se l'utente esiste già
+    const existingUser = await UserModel.findOne({ email });
+    if (existingUser) {
       return res.status(400).send('Email già registrata');
     }
 
     // Hash della password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Inserisci l'utente nel database
-    const query = 'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)';
-    connection.query(query, [username, email, hashedPassword], (err, result) => {
-      if (err) throw err;
-      res.status(201).send('Utente registrato con successo');
+    // Crea un nuovo utente
+    const newUser = new UserModel({
+      username,
+      email,
+      password_hash: hashedPassword,
     });
-  });
+
+    // Salva l'utente nel database
+    await newUser.save();
+    res.status(201).send('Utente registrato con successo');
+  } catch (error) {
+    console.error('Errore durante la registrazione:', error);
+    res.status(500).send('Errore durante la registrazione');
+  }
 });
 
 
