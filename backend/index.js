@@ -12,13 +12,15 @@ const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 
 const rateLimit = require('express-rate-limit');
+const UAParser = require('ua-parser-js');
 const connectDB = require('./db');  // Assumendo che il file di connessione si chiami db.js
 
 const UserModel = require('./db_model/userModel');
 const FileInModel = require('./db_model/fileInModel');
 const FileOutModel = require('./db_model/fileOutModel');
 const FileStatisticsModel = require('./db_model/file_statisticsModel');
-const ActionsLogModel = require('./db_model/actions_logModel');
+//const ActionsLogModel = require('./db_model/actions_logModel');
+const LoggerModel = require('./db_model/loggerModel');
 
 // Connetti a MongoDB prima di avviare il server
 connectDB();
@@ -69,15 +71,53 @@ const authenticateToken = (req, res, next) => {
 
 
 
+const createLogDB = async (userUsername, logType, logMessage) => {
+  try {
+    // Crea un nuovo documento nel modello Logger
+    const newLog = new LoggerModel({
+      user_username: userUsername,
+      log_type: logType,
+      log_message: logMessage, // Converte il messaggio in un Buffer se necessario
+      created_at: new Date() // Aggiunto automaticamente, ma puoi specificarlo
+    });
+
+    // Salva il log nel database
+    await newLog.save();
+    console.log('Log creato con successo - ' + userUsername + " - " + logMessage);
+  } catch (error) {
+    console.error('Errore durante la creazione del log:', error);
+  }
+};
+
+
+const parser = new UAParser();
 
 // Configura il rate limiter per la rotta di login
 const loginLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // Durata della finestra: 5 minuti (espressa in millisecondi)
-  max: 10, // Numero massimo di richieste consentite per IP in questa finestra temporale
+  max: 3, // Numero massimo di richieste consentite per IP in questa finestra temporale
   message: "Hai effettuato troppi tentativi di login. Riprova tra 5 minuti.", // Messaggio di errore
   headers: true, // Invia informazioni aggiuntive come `Retry-After` header
-});
+  handler: (req, res, next) => {
+    // Log della violazione del limite
 
+    console.log("Entrato");
+
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+    const result = parser.setUA(userAgent).getResult();
+
+    const deviceType = result.device.type || 'desktop';
+    const osName = result.os.name || 'OS sconosciuto';
+    const browserName = result.browser.name || 'Browser sconosciuto';
+
+    const logMessage = `Superato limite di login da IP ${ipAddress} usando ${deviceType} con OS ${osName} e browser ${browserName}`;
+    createLogDB('sistema', 'error', logMessage);
+
+    // Risposta personalizzata
+    res.status(429).json({ message: "Hai effettuato troppi tentativi di login. Riprova tra 5 minuti." });
+  }
+});
 
 // Route per il login
 app.post('/login', loginLimiter, async (req, res) => {
@@ -111,6 +151,23 @@ app.post('/login', loginLimiter, async (req, res) => {
     const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
     console.log('Login riuscito, token generato');
 
+    user.latest_login = Date.now();
+    await user.save();
+
+    // Chiama la funzione di creazione log dopo l'operazione
+    const userAgent = req.headers['user-agent'];
+    const result = parser.setUA(userAgent).getResult();
+
+    const deviceType = result.device.type || 'desktop';
+    const osName = result.os.name || 'OS sconosciuto';
+    const browserName = result.browser.name || 'Browser sconosciuto';
+
+    console.log(`Dispositivo: ${deviceType}, OS: ${osName}, Browser: ${browserName}`);
+
+    // Puoi includere queste informazioni nel log
+    const logMessage = `Login riuscito da ${deviceType} con OS ${osName} e browser ${browserName}`;
+    await createLogDB(user.username, 'login', logMessage);
+
     res.json({ message: 'Login riuscito', token });
   } catch (err) {
     console.error('Errore durante il login:', err);
@@ -126,7 +183,10 @@ app.post('/login', loginLimiter, async (req, res) => {
 // Endpoint per ottenere il numero di file e i nomi in ordine di creazione
 app.get('/files', authenticateToken, async (req, res) => {
   try {
-    const files = await FileInModel.find({ user_id: req.user.id })
+    const files = await FileInModel.find({
+      user_id: req.user.id
+      , deleted: false
+    })
       .select('file_id file_name created_at n_download')
       .sort({ created_at: -1 });
 
@@ -144,7 +204,7 @@ app.get('/files', authenticateToken, async (req, res) => {
 const addSuffixToFilename = (filename, suffix) => {
   // Trova l'ultima occorrenza del punto per separare nome ed estensione
   const dotIndex = filename.lastIndexOf('.');
-  
+
   if (dotIndex === -1) {
     // Se non c'è un'estensione, aggiungi semplicemente il suffisso
     return `${filename}${suffix}`;
@@ -160,6 +220,37 @@ const addSuffixToFilename = (filename, suffix) => {
 
 
 
+// Endpoint di delete
+app.post('/delete', authenticateToken, async (req, res) => {
+  try {
+
+    // Trova il file in base all'ID e all'utente autenticato
+    const file = await FileInModel.findOne({ _id: req.body.fileId_todelete, user_id: req.user.id });
+
+    if (!file) {
+      return res.status(404).json({ message: 'File non trovato o accesso non autorizzato' });
+    }
+
+    // Incrementa il contatore dei download
+    file.deleted = true;
+    file.deleted_date = Date.now();
+    await file.save();
+
+    // Chiama la funzione di creazione log dopo l'operazione
+    await createLogDB(req.user.username, 'delete', 'File eliminato con successo.');
+
+
+    res.status(201).json({ message: 'File eliminato con successo' });
+
+  } catch (error) {
+    console.error('Errore durante il caricamento e il processamento dei file:', error);
+    res.status(500).json({ message: 'Errore durante il caricamento e il processamento dei file.' });
+  }
+});
+
+
+
+
 // Endpoint di upload
 app.post('/upload', authenticateToken, upload.array('files', 10), async (req, res) => {
   try {
@@ -167,37 +258,59 @@ app.post('/upload', authenticateToken, upload.array('files', 10), async (req, re
       return res.status(401).json({ message: 'Utente non autenticato.' });
     }
 
-    const filePromises = req.files.map(async (file) => {
-      const { originalname, buffer } = file;
+    const user = await UserModel.findOne({ _id: req.user.id });
 
-      // 1. Salva il file originale in FileInModel
-      const newFile = new FileInModel({
-        user_id: req.userId,
-        file_name: originalname,
-        file_data: buffer,
+    if (!user) {
+      return res.status(404).json({ message: 'User non trovato o accesso non autorizzato' });
+    }
+
+    if (user.n_usage_total > (0 + req.files.length)) {
+
+
+
+      const filePromises = req.files.map(async (file) => {
+        const { originalname, buffer } = file;
+
+        // 1. Salva il file originale in FileInModel
+        const newFile = new FileInModel({
+          user_id: req.userId,
+          file_name: originalname,
+          file_data: buffer,
+          deleted: false
+        });
+        await newFile.save();
+
+        // 2. Processa il file
+        const modifiedData = await processFile(buffer);
+
+        const modifiedFileName = addSuffixToFilename(originalname, '_modificato');
+
+        // 3. Salva il file modificato in FileOutModel
+        const modifiedFile = new FileOutModel({
+          user_id: req.userId,
+          file_id: newFile._id,
+          file_name: modifiedFileName,
+          file_data: modifiedData,
+        });
+        await modifiedFile.save();
+
+        return modifiedFile;
       });
-      await newFile.save();
 
-      // 2. Processa il file
-      const modifiedData = await processFile(buffer);
+      const savedFiles = await Promise.all(filePromises);
 
-      const modifiedFileName = addSuffixToFilename(originalname, '_modificato');
+      // Chiama la funzione di creazione log dopo l'operazione
+      await createLogDB(req.user.username, 'upload', 'File caricato con successo.');
 
-      // 3. Salva il file modificato in FileOutModel
-      const modifiedFile = new FileOutModel({
-        user_id: req.userId,
-        file_id: newFile._id,
-        file_name: modifiedFileName,
-        file_data: modifiedData,
-      });
-      await modifiedFile.save();
 
-      return modifiedFile;
-    });
+      user.n_usage_total -= 1;
+      await user.save();
 
-    const savedFiles = await Promise.all(filePromises);
-    res.status(201).json({ message: 'File caricati e processati con successo', files: savedFiles });
+      res.status(201).json({ message: 'File caricati e processati con successo', files: savedFiles });
 
+    } else {
+      res.status(400).json({ message: 'L\'utente ha terminato gli utilizzi a sua disposizione' });
+    }
   } catch (error) {
     console.error('Errore durante il caricamento e il processamento dei file:', error);
     res.status(500).json({ message: 'Errore durante il caricamento e il processamento dei file.' });
@@ -227,11 +340,15 @@ app.get('/download/:fileId', authenticateToken, async (req, res) => {
       'Content-Disposition': `attachment; filename="${file.file_name}"`,
       'Content-Type': 'application/octet-stream',
     });
-    
+
     //res.setHeader('Content-Disposition', `attachment; filename="${file.file_name}"`);
     //res.setHeader('Content-Type', 'application/octet-stream');
-    
-    res.end(file.file_data);    
+
+    // Chiama la funzione di creazione log dopo l'operazione
+    await createLogDB(req.user.username, 'download', 'File scaricato con successo.');
+
+
+    res.end(file.file_data);
   } catch (error) {
     console.error('Errore durante il download del file:', error);
     res.status(500).json({ message: 'Errore durante il download del file.' });
