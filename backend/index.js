@@ -266,11 +266,22 @@ app.post('/upload', authenticateToken, upload.array('files', 10), async (req, re
     }
 
     if (user.n_usage_total > (0 + req.files.length)) {
-
-
+      // Se è stato fornito, usiamo il nome del foglio inviato dal frontend
+      const selectedSheetName = req.body.selectedSheetName;
 
       const filePromises = req.files.map(async (file) => {
         const { originalname, buffer } = file;
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(buffer);
+
+        // Elenca i nomi dei fogli se ci sono più fogli, altrimenti usa il primo
+        const sheetNames = workbook.worksheets.map(sheet => sheet.name);
+        if (sheetNames.length > 1 && !selectedSheetName) {
+          return { originalname, sheetNames }; // Restituisce i nomi dei fogli per la selezione
+        }
+
+        // Se è stato fornito un nome di foglio, lo passiamo a processFile
+        const modifiedData = await processFile(buffer, selectedSheetName);
 
         // 1. Salva il file originale in FileInModel
         const newFile = new FileInModel({
@@ -280,9 +291,6 @@ app.post('/upload', authenticateToken, upload.array('files', 10), async (req, re
           deleted: false
         });
         await newFile.save();
-
-        // 2. Processa il file
-        const modifiedData = await processFile(buffer);
 
         const modifiedFileName = addSuffixToFilename(originalname, '_modificato');
 
@@ -295,7 +303,7 @@ app.post('/upload', authenticateToken, upload.array('files', 10), async (req, re
         });
         await modifiedFile.save();
 
-        return modifiedFile;
+        return { file: modifiedFile, sheetNames };
       });
 
       const savedFiles = await Promise.all(filePromises);
@@ -303,8 +311,7 @@ app.post('/upload', authenticateToken, upload.array('files', 10), async (req, re
       // Chiama la funzione di creazione log dopo l'operazione
       await createLogDB(req.user.username, 'upload', 'File caricato con successo.');
 
-
-      user.n_usage_total -= 1;
+      user.n_usage_total -= req.files.length;
       await user.save();
 
       res.status(201).json({ message: 'File caricati e processati con successo', files: savedFiles });
@@ -439,28 +446,26 @@ async function processFile(buffer) {
     await workbook.xlsx.load(buffer);
     //console.log('Workbook caricato con successo.');
 
-    const originalWorksheet = workbook.getWorksheet(1);
+    let worksheet;
 
-    // Crea una copia del foglio originale
-    const modifiedWorksheet = copyWorksheet(originalWorksheet, workbook, 'FoglioModificato');
+    // Se il nome del foglio è fornito, usalo; altrimenti prendi il primo foglio
+    if (sheetName) {
+      worksheet = workbook.getWorksheet(sheetName);
+    } else if (workbook.worksheets.length === 1) {
+      worksheet = workbook.getWorksheet(1);
+    } else {
+      throw new Error('Il nome del foglio non è specificato e ci sono più fogli.');
+    }
 
-    // Crea un foglio per le righe duplicate
+    // Qui prosegui con la logica per copiare il foglio, evidenziare duplicati, ecc.
+    const modifiedWorksheet = copyWorksheet(worksheet, workbook, 'FoglioModificato');
     const filteredWorksheet = workbook.addWorksheet('RigheCoinvolte');
-    filteredWorksheet.addRow(modifiedWorksheet.getRow(1).values).commit(); // Copia l'intestazione
+    filteredWorksheet.addRow(modifiedWorksheet.getRow(1).values).commit();
 
-    // Array di valori da filtrare
     const filterValues = ['STAFF', '--'];
-    const totalColumns = modifiedWorksheet.columnCount;
-    const newColumn = totalColumns + 1;
-
-    // Evidenzia righe duplicate e copia nel nuovo foglio
+    const newColumn = modifiedWorksheet.columnCount + 1;
     highlightAndCountDuplicates(modifiedWorksheet, filterValues, newColumn, filteredWorksheet);
-    filteredWorksheet.addRow(modifiedWorksheet.getRow(1).values).commit(); // Copia l'intestazione
 
-    // Ordina il foglio delle righe coinvolte per la colonna ID (prima colonna)
-    sortWorksheetByColumn(filteredWorksheet, 1);
-
-    // Ridimensiona le colonne per entrambi i fogli
     [modifiedWorksheet, filteredWorksheet].forEach(autoResizeColumns);
 
     console.log('---Elaborazione completata con successo.');
