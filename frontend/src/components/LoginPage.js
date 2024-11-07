@@ -51,7 +51,7 @@ const LoginPage = () => {
                 dispatch({ type: 'LOGIN', payload: { user, expiresAt } });
 
                 // Reindirizza alla pagina /app
-                const redirectPath = location.state?.from?.pathname || '/';
+                const redirectPath = location.state?.from?.pathname || '/app';
                 navigate(redirectPath);  // Torna alla pagina di origine o alla homepage
             } catch (error) {
                 console.error('Errore di login:', error);
