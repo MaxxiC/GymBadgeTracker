@@ -48,7 +48,19 @@ const AppPage = () => {
             });
 
             if (response.ok) {
-                console.log('File inviati con successo!');
+                const filesWithMultipleSheets = result.files.filter(file => file.sheetNames && file.sheetNames.length > 1);
+
+                if (filesWithMultipleSheets.length > 0) {
+                    // Se ci sono file con più fogli, memorizza i fogli in `sheetChoices`
+                    setSheetChoices(filesWithMultipleSheets.map(file => ({
+                        name: file.originalname,
+                        sheetNames: file.sheetNames,
+                    })));
+                    setIsModalOpen(true); // Apri la modal per la selezione del foglio
+                } else {
+                    console.log('File inviati e processati con successo!', result);
+                    setSheetChoices([]); // Assicurati che `sheetChoices` sia vuoto
+                }
             } else if (response.status === 401) {
                 console.error('Non autorizzato. Effettua il login.');
                 const errorData = await response.json();
@@ -111,7 +123,7 @@ const AppPage = () => {
         } catch (error) {
             console.error('Errore durante la richiesta all\'API:', error);
         }
-        
+
         setIsModalOpen(false); // Chiudi la modal dopo aver completato l'invio
     };
 
