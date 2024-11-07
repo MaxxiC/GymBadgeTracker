@@ -67,6 +67,62 @@ const AppPage = () => {
         setSelectedFiles(null);
     };
 
+    // Funzione per inviare i file con il nome del foglio selezionato
+    const submitWithSheetSelection = async () => {
+        if (!selectedFiles) {
+            console.error('Nessun file selezionato.');
+            return;
+        }
+
+        const formData = new FormData();
+        Array.from(selectedFiles).forEach(file => {
+            formData.append('files', file);
+        });
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.error("Token non trovato nel localStorage");
+            return;
+        }
+
+        try {
+            for (const choice of sheetChoices) {
+                const selectedSheetName = selectedSheet[choice.name];
+                if (!selectedSheetName) continue;
+
+                // Richiesta al backend con nome del foglio selezionato
+                formData.append('selectedSheetName', selectedSheetName);
+                const response = await fetch(`${apiUrl}/upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData,
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    console.log(`File ${choice.name} processato con il foglio ${selectedSheetName} selezionato con successo!`);
+                } else {
+                    console.error('Errore durante il processamento del file:', result.message);
+                    alert(result.message);
+                }
+            }
+        } catch (error) {
+            console.error('Errore durante la richiesta all\'API:', error);
+        }
+        
+        setIsModalOpen(false); // Chiudi la modal dopo aver completato l'invio
+    };
+
+    // Funzione per gestire la selezione del foglio
+    const handleSheetSelection = (fileName, sheetName) => {
+        setSelectedSheet({
+            ...selectedSheet,
+            [fileName]: sheetName
+        });
+    };
+
     // delete selected files
     const handleDeleteFile = (index) => {
         const updatedFiles = [...selectedFiles];
