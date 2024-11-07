@@ -1,4 +1,5 @@
-import { createContext, useReducer, useContext, useMemo } from "react";
+import { createContext, useReducer, useContext, useMemo, useEffect, useCallback } from "react";
+import { useNavigate } from 'react-router-dom';
 
 export const AuthContext = createContext();
 
@@ -24,6 +25,25 @@ export const AuthContextProvider = ({ children }) => {
         expiresAt: localStorage.getItem('expiresAt') || null,
     });
 
+    const navigate = useNavigate(); // Hook di navigazione per reindirizzare
+
+    // Funzione di logout memorizzata con useCallback
+    const logout = useCallback(() => {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        localStorage.removeItem('expiresAt');
+        dispatch({ type: 'LOGOUT' });
+    }, []); // La funzione non dipende da alcun valore esterno
+
+    // Verifica se il token è scaduto
+    useEffect(() => {
+        const currentTime = new Date().getTime();
+        if (state.expiresAt && currentTime >= state.expiresAt) {
+            logout();  // Esegui il logout se il token è scaduto
+            navigate('/');  // Reindirizza alla homepage (o login)
+        }
+    }, [state.expiresAt, logout, navigate]);
+
     // Memorizza il risultato dell'autenticazione
     const isAuthenticated = useMemo(() => {
         const currentTime = new Date().getTime();
@@ -37,14 +57,6 @@ export const AuthContextProvider = ({ children }) => {
         localStorage.setItem('token', token);
         localStorage.setItem('expiresAt', expiresAt);
         dispatch({ type: 'LOGIN', payload: { user, token, expiresAt } });
-    };
-
-    // Funzione per fare il logout
-    const logout = () => {
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        localStorage.removeItem('expiresAt');
-        dispatch({ type: 'LOGOUT' });
     };
 
     return (
