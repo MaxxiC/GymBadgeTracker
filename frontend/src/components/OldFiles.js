@@ -201,6 +201,7 @@ const OldFiles = () => {
                         <thead>
                             <tr>
                                 <td className='mx-1'>Name</td>
+                                <td className='mx-1'>Sheet Name</td>
                                 <td className='mx-1'>Date</td>
                                 <td className='mx-1'>Download</td>
                                 <td className='mx-1'>Delete</td>
@@ -210,6 +211,7 @@ const OldFiles = () => {
                             {files.map(file => (
                                 <tr key={file.created_at}>
                                     <td className='mx-1'>{file.file_name}</td>
+                                    <td className='mx-1'>{file.sheet_used_name}</td>
                                     <td className='mx-1'>{formatCreationDate(file.created_at)}</td>
                                     <td className='mx-1'><button onClick={() => handleDownload(file._id)} className="btn btn-primary" >
                                         <i className="bi bi-download "></i>

@@ -10,16 +10,39 @@ const AppPage = () => {
     // Usa la variabile d'ambiente
     const apiUrl = process.env.REACT_APP_API_URL;
 
-    const [selectedFiles, setSelectedFiles] = useState(null);
+    const [selectedFiles, setSelectedFiles] = useState([]);
     const [sheetChoices, setSheetChoices] = useState([]); // Stato per mantenere i nomi dei fogli
     const [selectedSheet, setSelectedSheet] = useState({}); // Stato per memorizzare il foglio scelto per ogni file
 
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef(null);
-    const [isModalOpen, setIsModalOpen] = useState(false); // Stato per visualizzare la Modal di selezione sheet file
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // Funzione generica per inviare una richiesta al backend
+    const sendRequest = async (formData) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.error("Token non trovato nel localStorage");
+            return;
+        }
 
-    // upload file
+        try {
+            const response = await fetch(`${apiUrl}/upload`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            const result = await response.json();
+            return { response, result };
+        } catch (error) {
+            console.error('Errore durante la richiesta all\'API:', error);
+            return { error };
+        }
+    };
+
+    // Caricamento file
     const uploadFiles = async () => {
         if (!selectedFiles || selectedFiles.length === 0) {
             console.error('Nessun file selezionato.');
@@ -27,61 +50,31 @@ const AppPage = () => {
         }
 
         const formData = new FormData();
-        Array.from(selectedFiles).forEach(file => {
-            formData.append('files', file);  // Aggiungi ogni file singolarmente a 'files'
-        });
+        Array.from(selectedFiles).forEach(file => formData.append('files', file));
 
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.error("Token non trovato nel localStorage");
-            return;
-        }
+        const { response, result, error } = await sendRequest(formData);
+        if (error) return;
 
-
-        try {
-            const response = await fetch(`${apiUrl}/upload`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: formData,
-            });
-
-
-            const result = await response.json();
-            if (response.ok) {
-                const filesWithMultipleSheets = result.files.filter(file => file.sheetNames && file.sheetNames.length > 1);
-
-                if (filesWithMultipleSheets.length > 0) {
-                    // Se ci sono file con più fogli, memorizza i fogli in `sheetChoices`
-                    setSheetChoices(filesWithMultipleSheets.map(file => ({
-                        name: file.originalname,
-                        sheetNames: file.sheetNames,
-                    })));
-                    setIsModalOpen(true); // Apri la modal per la selezione del foglio
-                } else {
-                    console.log('File inviati e processati con successo!', result);
-                    setSheetChoices([]); // Assicurati che `sheetChoices` sia vuoto
-                }
-            } else if (response.status === 401) {
-                console.error('Non autorizzato. Effettua il login.');
-                const errorData = await response.json();
-                console.error('Errore dal server:', errorData.message);
-                alert(errorData.message); // Opzionale, per mostrare un messaggio all'utente
+        if (response.ok) {
+            const filesWithMultipleSheets = result.files.filter(file => file.sheetNames && file.sheetNames.length > 1);
+            if (filesWithMultipleSheets.length > 0) {
+                setSheetChoices(filesWithMultipleSheets.map(file => ({
+                    name: file.originalname,
+                    sheetNames: file.sheetNames,
+                })));
+                setIsModalOpen(true);
             } else {
-                console.error('Errore durante l\'invio dei file.');
-                const errorData = await response.json();
-                console.error('Errore dal server:', errorData.message);
-                alert(errorData.message); // Opzionale, per mostrare un messaggio all'utente
+                console.log('File inviati e processati con successo!', result);
+                setSelectedFiles([]); // Svuota la lista dei file al termine
+                setSheetChoices([]);
             }
-        } catch (error) {
-            console.error('Errore durante la richiesta all\'API:', error);
+        } else {
+            console.error('Errore durante l\'invio dei file:', result.message);
+            alert(result.message);
         }
-
-        //setSelectedFiles(null);
     };
 
-    // Funzione per inviare i file con il nome del foglio selezionato
+    // Invio file con nome del foglio selezionato
     const submitWithSheetSelection = async () => {
         if (!selectedFiles) {
             console.error('Nessun file selezionato.');
@@ -89,47 +82,29 @@ const AppPage = () => {
         }
 
         const formData = new FormData();
-        Array.from(selectedFiles).forEach(file => {
-            formData.append('files', file);
-        });
+        Array.from(selectedFiles).forEach(file => formData.append('files', file));
 
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.error("Token non trovato nel localStorage");
-            return;
-        }
+        for (const choice of sheetChoices) {
+            const selectedSheetName = selectedSheet[choice.name];
+            if (!selectedSheetName) continue;
+            formData.append('selectedSheetName', selectedSheetName);
 
-        try {
-            for (const choice of sheetChoices) {
-                const selectedSheetName = selectedSheet[choice.name];
-                if (!selectedSheetName) continue;
+            const { response, result, error } = await sendRequest(formData);
+            if (error) return;
 
-                // Richiesta al backend con nome del foglio selezionato
-                formData.append('selectedSheetName', selectedSheetName);
-                const response = await fetch(`${apiUrl}/upload`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: formData,
-                });
-
-                const result = await response.json();
-                if (response.ok) {
-                    console.log(`File ${choice.name} processato con il foglio ${selectedSheetName} selezionato con successo!`);
-                } else {
-                    console.error('Errore durante il processamento del file:', result.message);
-                    alert(result.message);
-                }
+            if (response.ok) {
+                console.log(`File ${choice.name} processato con il foglio ${selectedSheetName} selezionato con successo!`);
+            } else {
+                console.error('Errore durante il processamento del file:', result.message);
+                alert(result.message);
             }
-        } catch (error) {
-            console.error('Errore durante la richiesta all\'API:', error);
         }
 
-        setIsModalOpen(false); // Chiudi la modal dopo aver completato l'invio
+        setSelectedFiles([]); // Svuota la lista dei file al termine
+        setIsModalOpen(false); // Chiudi la modal
     };
 
-    // Funzione per gestire la selezione del foglio
+    // Gestione selezione foglio
     const handleSheetSelection = (fileName, sheetName) => {
         setSelectedSheet({
             ...selectedSheet,
@@ -137,18 +112,14 @@ const AppPage = () => {
         });
     };
 
-    // delete selected files
+    // Elimina file selezionato
     const handleDeleteFile = (index) => {
         const updatedFiles = [...selectedFiles];
         updatedFiles.splice(index, 1);
-        setSelectedFiles(updatedFiles);
-
-        if (selectedFiles.length == 0) {
-            setSelectedFiles(null);
-        }
+        setSelectedFiles(updatedFiles.length ? updatedFiles : null);
     };
 
-    // drag & drop
+    // Funzioni di drag & drop
     const handleDragEnter = (e) => {
         e.preventDefault();
         setIsDragging(true);
@@ -166,25 +137,35 @@ const AppPage = () => {
         e.preventDefault();
         setIsDragging(false);
 
-        const droppedFiles = e.dataTransfer.files;
-        const isValidFileType = Array.from(droppedFiles).every(file =>
+        const droppedFiles = Array.from(e.dataTransfer.files);
+        const isValidFileType = droppedFiles.every(file =>
             file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
             file.type === 'application/vnd.ms-excel'
         );
 
         if (isValidFileType) {
-            console.log('File inviati con successo!');
-            console.log(droppedFiles[0].name);
-            setSelectedFiles(droppedFiles);
+            setSelectedFiles(prevFiles => [...prevFiles, ...droppedFiles]);
         } else {
             console.error('Tipo di file non valido. Accettati solo file Excel.');
         }
     };
 
+    const handleFileInputChange = (e) => {
+        const newFiles = Array.from(e.target.files); // Converti i file in array
+        // Assicurati che selectedFiles sia sempre un array e aggiungi i nuovi file
+        setSelectedFiles(prevFiles => {
+            if (!prevFiles) {
+                return newFiles; // Se prevFiles è undefined o null, crea un nuovo array
+            }
+            return [...prevFiles, ...newFiles]; // Altrimenti aggiungi i nuovi file all'array esistente
+        });
+    };
+
+
+
     return (
         <div className="container-fluid">
             <MainBar />
-            {/* Main Content */}
             <div className='d-flex flex-column justify-content-center m-auto'>
                 <div
                     className={`row div-drop ${isDragging ? 'dragging' : ''}`}
@@ -205,43 +186,30 @@ const AppPage = () => {
                                 type='file'
                                 accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
                                 className="file-input"
-                                onChange={(e) => setSelectedFiles(e.target.files)}
+                                onChange={handleFileInputChange}  // Usa la nuova funzione qui
                                 ref={fileInputRef}
                                 multiple
                             />
                         </div>
                         {selectedFiles && selectedFiles.length > 0 && (
                             <div className="selected-files text-white ">
-
                                 <table>
-                                    {
-                                        (
-                                            // Se è un array, usa il ciclo for
-                                            (() => {
-                                                const files = [];
-                                                for (let i = 0; i < selectedFiles.length; i++) {
-                                                    files.push(
-                                                        <tr key={i}>
-                                                            <td id={i} className='mx-1'>{selectedFiles[i].name}</td>
-                                                            <td>
-                                                                <button type="button" className="btn btn-danger mx-1" onClick={() => handleDeleteFile(i)} >
-                                                                    <i className="bi bi-trash"></i>
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                }
-                                                return files;
-                                            })()
-                                        )
-                                    }
+                                    {Array.from(selectedFiles).map((file, i) => (
+                                        <tr key={i}>
+                                            <td id={i} className='mx-1'>{file.name}</td>
+                                            <td>
+                                                <button type="button" className="btn btn-danger mx-1" onClick={() => handleDeleteFile(i)} >
+                                                    <i className="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </table>
                                 <button className='btn btn-link m-1' onClick={uploadFiles}>Invia Tutto</button>
                             </div>
                         )}
 
-
-                        {/* Bootstrap Modal */}
+                        {/* Modal di Bootstrap */}
                         <div className={`modal fade ${isModalOpen ? 'show' : ''}`} style={{ display: isModalOpen ? 'block' : 'none' }}>
                             <div className="modal-dialog">
                                 <div className="modal-content">
@@ -274,9 +242,7 @@ const AppPage = () => {
                             </div>
                         </div>
 
-                        {/* Backdrop per la Modal di Bootstrap */}
                         {isModalOpen && <div className="modal-backdrop fade show"></div>}
-
                     </div>
                     <OldFiles />
                 </div>

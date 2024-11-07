@@ -188,7 +188,7 @@ app.get('/files', authenticateToken, async (req, res) => {
       user_id: req.user.id
       , deleted: false
     })
-      .select('file_id file_name created_at n_download')
+      .select('file_id file_name sheet_used_name created_at n_download')
       .sort({ created_at: -1 });
 
     res.json({ count: files.length, files });
@@ -283,12 +283,16 @@ app.post('/upload', authenticateToken, upload.array('files', 10), async (req, re
         // Se è stato fornito un nome di foglio, lo passiamo a processFile
         const modifiedData = await processFile(buffer, selectedSheetName);
 
+        
+        const sheet_used = selectedSheetName !== undefined && selectedSheetName !== null ? selectedSheetName : sheetNames[0];
+        
         // 1. Salva il file originale in FileInModel
         const newFile = new FileInModel({
           user_id: req.userId,
           file_name: originalname,
           file_data: buffer,
-          deleted: false
+          deleted: false,
+          sheet_used_name: sheet_used,
         });
         await newFile.save();
 
