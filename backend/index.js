@@ -333,6 +333,26 @@ app.post('/upload', authenticateToken, upload.array('files', 10), async (req, re
 
 
 
+app.post('/getSheetNames', authenticateToken, upload.single('file'), async (req, res) => {
+  try {
+      const { buffer } = req.file;
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(buffer);
+
+      // Elenca i nomi dei fogli
+      const sheetNames = workbook.worksheets.map(sheet => sheet.name);
+      
+      //console.log("Sheet Names:", sheetNames); 
+      res.json(sheetNames); // Restituisce direttamente l'array dei nomi dei fogli
+  } catch (error) {
+      console.error("Errore nel caricamento dei fogli:", error);
+      res.status(500).json({ error: "Errore durante il caricamento dei fogli" });
+  }
+});
+
+
+
+
 
 app.get('/download/:fileId', authenticateToken, async (req, res) => {
   try {
@@ -366,6 +386,62 @@ app.get('/download/:fileId', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Errore durante il download del file.' });
   }
 });
+
+
+
+//api per ritornare solo i nomi dei filtri all'utente
+app.post('/getFilters', authenticateToken, upload.array('files'), async (req, res) => {
+  try {
+      const files = req.files;
+      const sheetNames = req.body.sheetNames; // Array dei nomi dei fogli selezionati
+
+      let allFilters = new Set();
+
+      for (let i = 0; i < files.length; i++) {
+          const fileBuffer = files[i].buffer;
+          const selectedSheetName = Array.isArray(sheetNames) ? sheetNames[i] : sheetNames;
+
+          const workbook = new ExcelJS.Workbook();
+          await workbook.xlsx.load(fileBuffer);
+          const worksheet = workbook.getWorksheet(selectedSheetName);
+
+          if (!worksheet) {
+              return res.status(400).json({ error: `Foglio ${selectedSheetName} non trovato.` });
+          }
+
+          // Trova l'indice della colonna "Attività"
+          const columns = worksheet.getRow(1).values; // Ottieni i valori della prima riga (intestazioni)
+          const activityColumnIndex = columns.indexOf('Attività'); // Trova l'indice della colonna "Attività"
+
+          if (activityColumnIndex === -1) {
+              return res.status(400).json({ error: "Colonna 'Attività' non trovata." });
+          }
+
+          // Estrai i valori unici dalla colonna "Attività"
+          const filterValues = new Set();
+          worksheet.eachRow((row, rowIndex) => {
+              if (rowIndex === 1) return; // Ignora l'intestazione
+
+              const activityValue = row.getCell(activityColumnIndex).value; // Accedi alla cella con l'indice corretto
+              if (activityValue) filterValues.add(activityValue);
+          });
+
+          filterValues.forEach(value => allFilters.add(value));
+      }
+
+      res.json(Array.from(allFilters)); // Restituisci l'array di filtri unici
+  } catch (error) {
+      console.error("Errore nel caricamento dei filtri:", error);
+      res.status(500).json({ error: "Errore durante il caricamento dei filtri" });
+  }
+});
+
+
+
+
+
+
+
 
 
 
