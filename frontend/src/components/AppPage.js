@@ -47,6 +47,8 @@ const AppPage = () => {
                 body: formData,
             });
 
+
+            const result = await response.json();
             if (response.ok) {
                 const filesWithMultipleSheets = result.files.filter(file => file.sheetNames && file.sheetNames.length > 1);
 
