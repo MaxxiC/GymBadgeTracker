@@ -11,8 +11,13 @@ const AppPage = () => {
     const apiUrl = process.env.REACT_APP_API_URL;
 
     const [selectedFiles, setSelectedFiles] = useState(null);
+    const [sheetChoices, setSheetChoices] = useState([]); // Stato per mantenere i nomi dei fogli
+    const [selectedSheet, setSelectedSheet] = useState({}); // Stato per memorizzare il foglio scelto per ogni file
+
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef(null);
+    const [isModalOpen, setIsModalOpen] = useState(false); // Stato per visualizzare la Modal di selezione sheet file
+
 
     // upload file
     const uploadFiles = async () => {
@@ -162,6 +167,32 @@ const AppPage = () => {
                                     }
                                 </table>
                                 <button className='btn btn-link m-1' onClick={uploadFiles}>Invia Tutto</button>
+                            </div>
+                        )}
+
+
+                        {/* Visualizza la modal di selezione foglio */}
+                        {isModalOpen && (
+                            <div className="modal">
+                                <div className="modal-content">
+                                    <h3>Seleziona un foglio per ciascun file:</h3>
+                                    {sheetChoices.map((choice, idx) => (
+                                        <div key={idx}>
+                                            <label>{`File: ${choice.name}`}</label>
+                                            <select
+                                                value={selectedSheet[choice.name] || ''}
+                                                onChange={(e) => handleSheetSelection(choice.name, e.target.value)}
+                                            >
+                                                <option value="">-- Seleziona un foglio --</option>
+                                                {choice.sheetNames.map((sheet, index) => (
+                                                    <option key={index} value={sheet}>{sheet}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    ))}
+                                    <button onClick={submitWithSheetSelection}>Processa File con Foglio Selezionato</button>
+                                    <button onClick={() => setIsModalOpen(false)}>Chiudi</button>
+                                </div>
                             </div>
                         )}
 
