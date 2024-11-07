@@ -376,7 +376,7 @@ function copyWorksheet(originalWorksheet, workbook, newSheetName) {
   return newWorksheet;
 }
 
-// Funzione per controllare se un valore è presente in un array
+// Funzione per controllare se un valore contiene uno degli elementi di un array
 function isValueExcluded(value, filterValues) {
   return filterValues.some(filter => value && value.includes(filter));
 }
@@ -390,7 +390,7 @@ function highlightAndCountDuplicates(worksheet, filterValues, newColumn, filtere
     const currentID = currentRow.getCell(1).value;
     const cellValueCol6 = currentRow.getCell(6).value;
     const duplicateCount = worksheet.getColumn(1).values.filter(val => val === currentID).length;
-    
+
     if (duplicateCount > 1 && !isValueExcluded(cellValueCol6, filterValues)) {
       currentRow.eachCell(cell => {
         cell.fill = {
@@ -401,7 +401,7 @@ function highlightAndCountDuplicates(worksheet, filterValues, newColumn, filtere
       });
       currentRow.getCell(newColumn).value = duplicateCount;
       currentRow.commit();
-      
+
       // Copia la riga nel foglio delle righe duplicate
       filteredWorksheet.addRow(currentRow.values).commit();
       //console.log(`Riga ${i} duplicata e copiata in "RigheCoinvolte".`);
@@ -454,7 +454,7 @@ async function processFile(buffer) {
 
     console.log('---Elaborazione completata con successo.');
     console.log('-------');
-    
+
     return await workbook.xlsx.writeBuffer();
 
   } catch (error) {
@@ -479,7 +479,7 @@ async function processFile(buffer) {
 async function verifyAuthorizedUser(req, res, next) {
   try {
     console.log("entroooooo");
-    
+
     // Assumi che l'utente sia autenticato e che l'identità sia disponibile nel `req.user`
     if (req.user && req.user.username === 'testuser123') {
       next(); // Passa alla route successiva
@@ -497,7 +497,7 @@ app.post('/register', authenticateToken, verifyAuthorizedUser, async (req, res) 
   const { username, email, password } = req.body;
 
   console.log("tentativo--------");
-  
+
   if (!username || !email || !password) {
     return res.status(400).send('Tutti i campi sono obbligatori');
   }
