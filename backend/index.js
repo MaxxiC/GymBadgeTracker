@@ -396,10 +396,11 @@ function highlightAndCountDuplicates(worksheet, filterValues, newColumn, filtere
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
-          fgColor: { argb: 'FFFF0000' }, // Rosso
+          fgColor: { argb: 'FF7C8080' }, // Colore rosso opaco
         };
       });
       currentRow.getCell(newColumn).value = duplicateCount;
+      currentRow.getCell(newColumn).alignment = { horizontal: 'center' }; // Allinea al centro
       currentRow.commit();
 
       // Copia la riga nel foglio delle righe duplicate
@@ -407,6 +408,12 @@ function highlightAndCountDuplicates(worksheet, filterValues, newColumn, filtere
       //console.log(`Riga ${i} duplicata e copiata in "RigheCoinvolte".`);
     }
   }
+}
+
+function sortWorksheetByColumn(worksheet, columnIndex) {
+  const rows = worksheet.getSheetValues().slice(2); // Ignora intestazione
+  rows.sort((a, b) => (a[columnIndex] > b[columnIndex] ? 1 : -1));
+  worksheet.spliceRows(2, worksheet.rowCount - 1, ...rows);
 }
 
 // Funzione per ridimensionare le colonne in un foglio
@@ -448,6 +455,10 @@ async function processFile(buffer) {
 
     // Evidenzia righe duplicate e copia nel nuovo foglio
     highlightAndCountDuplicates(modifiedWorksheet, filterValues, newColumn, filteredWorksheet);
+    filteredWorksheet.addRow(modifiedWorksheet.getRow(1).values).commit(); // Copia l'intestazione
+
+    // Ordina il foglio delle righe coinvolte per la colonna ID (prima colonna)
+    sortWorksheetByColumn(filteredWorksheet, 1);
 
     // Ridimensiona le colonne per entrambi i fogli
     [modifiedWorksheet, filteredWorksheet].forEach(autoResizeColumns);
