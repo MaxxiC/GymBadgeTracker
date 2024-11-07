@@ -298,6 +298,25 @@ const AppPage = () => {
         );
     };
 
+    const sortedFilters = availableFilters.sort((a, b) => {
+        // Criterio 1: Filtri che contengono "STAFF" vanno in cima
+        const aContainsStaff = a.includes("STAFF");
+        const bContainsStaff = b.includes("STAFF");
+    
+        if (aContainsStaff && !bContainsStaff) return -1;
+        if (!aContainsStaff && bContainsStaff) return 1;
+    
+        // Criterio 2: Filtri che iniziano con "--" vengono subito dopo
+        const aStartsWithDash = a.startsWith("--");
+        const bStartsWithDash = b.startsWith("--");
+    
+        if (aStartsWithDash && !bStartsWithDash) return -1;
+        if (!aStartsWithDash && bStartsWithDash) return 1;
+    
+        // Criterio 3: Ordine alfabetico per tutti gli altri
+        return a.localeCompare(b);
+    });
+    
 
 
     return (
