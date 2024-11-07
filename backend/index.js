@@ -437,7 +437,8 @@ function autoResizeColumns(worksheet) {
 }
 
 // Funzione principale per elaborare il file Excel
-async function processFile(buffer) {
+// Modifica della funzione processFile per accettare il nome del foglio da usare
+async function processFile(buffer, sheetName = null) {
   try {
     console.log('-------');
     console.log('---Inizio elaborazione del file...');
