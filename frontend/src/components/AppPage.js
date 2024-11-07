@@ -14,9 +14,17 @@ const AppPage = () => {
     const [sheetChoices, setSheetChoices] = useState([]); // Stato per mantenere i nomi dei fogli
     const [selectedSheet, setSelectedSheet] = useState({}); // Stato per memorizzare il foglio scelto per ogni file
 
+    const [availableFilters, setAvailableFilters] = useState([]);
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [selectedFilters, setSelectedFilters] = useState([]); // Stato per memorizzare i filtri del file scelti
+    const [useFilters, setUseFilters] = useState(true); // Stato per capire se i filtri sono stati selezioni e/o non usati
+
+    const [sheetNamesMap, setSheetNamesMap] = useState({}); // Mappa dei nomi dei fogli
+    const [allSheetsSelected, setAllSheetsSelected] = useState(false);
+
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false); //old modal da cancellare selezione sheet
 
     // Funzione generica per inviare una richiesta al backend
     const sendRequest = async (formData) => {
@@ -112,12 +120,65 @@ const AppPage = () => {
         });
     };
 
+
+
+    // Invio file con nome del foglio selezionato
+    const chooseFilters = async () => {
+        if (!selectedFiles) {
+            console.error('Nessun file selezionato.');
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.error("Token non trovato nel localStorage");
+            return;
+        }
+
+        const formData = new FormData();
+        Array.from(selectedFiles).forEach(file => {
+            formData.append('files', file);
+            const selectedSheet = sheetNamesMap[file.name];
+            formData.append('sheetNames', selectedSheet); // Aggiunge il nome del foglio selezionato
+        });
+
+        try {
+            const response = await fetch(`${apiUrl}/getFilters`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error("Errore nella risposta del server");
+            }
+
+            const filters = await response.json();
+            setAvailableFilters(filters); // Salva i filtri disponibili nel state
+            openFilterModal(); // Apre la modale per la selezione dei filtri
+
+        } catch (error) {
+            console.error("Errore nel caricamento dei filtri:", error);
+        }
+    };
+
+
     // Elimina file selezionato
     const handleDeleteFile = (index) => {
         const updatedFiles = [...selectedFiles];
-        updatedFiles.splice(index, 1);
+        const [removedFile] = updatedFiles.splice(index, 1);
         setSelectedFiles(updatedFiles.length ? updatedFiles : null);
+
+        // Rimuovi anche la selezione del foglio dalla mappa
+        const updatedSheetNamesMap = { ...sheetNamesMap };
+        delete updatedSheetNamesMap[removedFile.name];
+        setSheetNamesMap(updatedSheetNamesMap);
+
+        checkAllSheetsSelected(updatedSheetNamesMap);
     };
+
 
     // Funzioni di drag & drop
     const handleDragEnter = (e) => {
@@ -159,6 +220,82 @@ const AppPage = () => {
             }
             return [...prevFiles, ...newFiles]; // Altrimenti aggiungi i nuovi file all'array esistente
         });
+
+        // Inizializza sheetNamesMap senza nomi di fogli
+        const initialSheetNamesMap = {};
+        newFiles.forEach(file => {
+            initialSheetNamesMap[file.name] = null; // Nessun foglio selezionato inizialmente
+        });
+        setSheetNamesMap(initialSheetNamesMap);
+    };
+
+
+    const handleLoadSheets = async (file) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error("Token non trovato nel localStorage");
+                return;
+            }
+            //const buffer = await file.arrayBuffer(); // Converte il file in un buffer
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Invia il buffer al backend
+            const response = await fetch(`${apiUrl}/getSheetNames`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            const result = await response.json();
+
+            const newSheetNamesMap = { ...sheetNamesMap };
+            if (result.length === 1) {
+                // Se c'è un solo foglio, selezionalo automaticamente
+                newSheetNamesMap[file.name] = result[0];
+            } else {
+                // Se ci sono più fogli, salva le opzioni ma nessuna selezione
+                newSheetNamesMap[file.name] = result;
+            }
+            setSheetNamesMap(newSheetNamesMap);
+            checkAllSheetsSelected(newSheetNamesMap);
+
+        } catch (error) {
+            console.error("Errore nel caricamento dei fogli:", error);
+        }
+    };
+
+    const handleSelectSheet = (fileName, sheetName) => {
+        // Aggiorna sheetNamesMap con la selezione del foglio
+        const newSheetNamesMap = { ...sheetNamesMap };
+        newSheetNamesMap[fileName] = sheetName;
+        setSheetNamesMap(newSheetNamesMap);
+        checkAllSheetsSelected(newSheetNamesMap);
+    };
+
+    const checkAllSheetsSelected = (map) => {
+        // Verifica se tutti i file hanno un foglio selezionato
+        const allSelected = Object.values(map).every(value => value !== null && typeof value === 'string');
+        setAllSheetsSelected(allSelected);
+    };
+
+
+
+
+    //modale selezione filtri
+    const openFilterModal = () => setIsFilterModalOpen(true);
+    const closeFilterModal = () => setIsFilterModalOpen(false);
+
+    // Gestisce l'aggiunta o la rimozione di un filtro selezionato
+    const toggleFilter = (filter) => {
+        setSelectedFilters(prevFilters =>
+            prevFilters.includes(filter)
+                ? prevFilters.filter(f => f !== filter)
+                : [...prevFilters, filter]
+        );
     };
 
 
@@ -196,7 +333,33 @@ const AppPage = () => {
                                 <table>
                                     {Array.from(selectedFiles).map((file, i) => (
                                         <tr key={i}>
-                                            <td id={i} className='mx-1'>{file.name}</td>
+                                            <td className='mx-1 border-1'>{file.name}</td>
+                                            <td className='mx-1 border-1'>
+                                                {sheetNamesMap[file.name] === null ? (
+                                                    // Mostra il pulsante "Load fogli" se il foglio non è ancora caricato
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-primary"
+                                                        onClick={() => handleLoadSheets(file)}
+                                                    >
+                                                        Load fogli
+                                                    </button>
+                                                ) : Array.isArray(sheetNamesMap[file.name]) ? (
+                                                    // Mostra una tendina se ci sono più fogli
+                                                    <select
+                                                        onChange={(e) => handleSelectSheet(file.name, e.target.value)}
+                                                        defaultValue=""
+                                                    >
+                                                        <option value="" disabled>Seleziona un foglio</option>
+                                                        {sheetNamesMap[file.name].map((sheet, index) => (
+                                                            <option key={index} value={sheet}>{sheet}</option>
+                                                        ))}
+                                                    </select>
+                                                ) : (
+                                                    // Mostra il nome del foglio se già selezionato
+                                                    sheetNamesMap[file.name]
+                                                )}
+                                            </td>
                                             <td>
                                                 <button type="button" className="btn btn-danger mx-1" onClick={() => handleDeleteFile(i)} >
                                                     <i className="bi bi-trash"></i>
@@ -205,44 +368,53 @@ const AppPage = () => {
                                         </tr>
                                     ))}
                                 </table>
-                                <button className='btn btn-link m-1' onClick={uploadFiles}>Invia Tutto</button>
+                                <button className='btn btn-link m-1' onClick={chooseFilters} disabled={!allSheetsSelected}>{selectedFilters.length > 0 ? 'Cambia Filtri' : 'Scegli Filtri'}</button>
+                                <button
+                                    className='btn btn-link m-1'
+                                    onClick={uploadFiles}
+                                    disabled={useFilters || selectedFilters.length > 0} // Disabilita se "useFilters" è falso o "selectedFilters" è vuoto
+                                > Invia Tutto</button>
                             </div>
                         )}
 
                         {/* Modal di Bootstrap */}
-                        <div className={`modal fade ${isModalOpen ? 'show' : ''}`} style={{ display: isModalOpen ? 'block' : 'none' }}>
-                            <div className="modal-dialog">
-                                <div className="modal-content">
-                                    <div className="modal-header">
-                                        <h5 className="modal-title">Seleziona un foglio per ciascun file:</h5>
-                                        <button type="button" className="btn-close" onClick={() => setIsModalOpen(false)}></button>
-                                    </div>
-                                    <div className="modal-body">
-                                        {sheetChoices.map((choice, idx) => (
-                                            <div key={idx}>
-                                                <label>{`File: ${choice.name}`}</label>
-                                                <select
-                                                    className="form-select mt-2 mb-3"
-                                                    value={selectedSheet[choice.name] || ''}
-                                                    onChange={(e) => handleSheetSelection(choice.name, e.target.value)}
-                                                >
-                                                    <option value="">-- Seleziona un foglio --</option>
-                                                    {choice.sheetNames.map((sheet, index) => (
-                                                        <option key={index} value={sheet}>{sheet}</option>
-                                                    ))}
-                                                </select>
+                        {isFilterModalOpen && (
+                            <>
+                                <div className={`modal fade ${isFilterModalOpen ? 'show' : ''}`} style={{ display: isFilterModalOpen ? 'block' : 'none' }} aria-labelledby="filterModalLabel" aria-hidden="true">
+                                    <div className="modal-dialog">
+                                        <div className="modal-content">
+                                            <div className="modal-header">
+                                                <h5 className="modal-title" id="filterModalLabel">Seleziona i Filtri</h5>
+                                                <button type="button" className="btn-close" onClick={closeFilterModal}></button>
                                             </div>
-                                        ))}
-                                    </div>
-                                    <div className="modal-footer">
-                                        <button className="btn btn-primary" onClick={submitWithSheetSelection}>Processa File</button>
-                                        <button className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>Chiudi</button>
+                                            <div className="modal-body">
+                                                <ul>
+                                                    {availableFilters.map((filter, index) => (
+                                                        <li key={index}>
+                                                            <label>
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={selectedFilters.includes(filter)}
+                                                                    onChange={() => toggleFilter(filter)}
+                                                                />
+                                                                {filter}
+                                                            </label>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                            <div className="modal-footer">
+                                                <button className="btn btn-secondary" onClick={closeFilterModal}>Annulla</button>
+                                                <button className="btn btn-primary" onClick={closeFilterModal}>Conferma</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        {isModalOpen && <div className="modal-backdrop fade show"></div>}
+                                {/* Backdrop */}
+                                <div className="modal-backdrop fade show"></div>
+                            </>
+                        )}
                     </div>
                     <OldFiles />
                 </div>
