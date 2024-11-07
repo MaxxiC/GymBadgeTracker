@@ -78,7 +78,7 @@ const AppPage = () => {
             console.error('Errore durante la richiesta all\'API:', error);
         }
 
-        setSelectedFiles(null);
+        //setSelectedFiles(null);
     };
 
     // Funzione per inviare i file con il nome del foglio selezionato
@@ -241,30 +241,41 @@ const AppPage = () => {
                         )}
 
 
-                        {/* Visualizza la modal di selezione foglio */}
-                        {isModalOpen && (
-                            <div className="modal">
+                        {/* Bootstrap Modal */}
+                        <div className={`modal fade ${isModalOpen ? 'show' : ''}`} style={{ display: isModalOpen ? 'block' : 'none' }}>
+                            <div className="modal-dialog">
                                 <div className="modal-content">
-                                    <h3>Seleziona un foglio per ciascun file:</h3>
-                                    {sheetChoices.map((choice, idx) => (
-                                        <div key={idx}>
-                                            <label>{`File: ${choice.name}`}</label>
-                                            <select
-                                                value={selectedSheet[choice.name] || ''}
-                                                onChange={(e) => handleSheetSelection(choice.name, e.target.value)}
-                                            >
-                                                <option value="">-- Seleziona un foglio --</option>
-                                                {choice.sheetNames.map((sheet, index) => (
-                                                    <option key={index} value={sheet}>{sheet}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    ))}
-                                    <button onClick={submitWithSheetSelection}>Processa File con Foglio Selezionato</button>
-                                    <button onClick={() => setIsModalOpen(false)}>Chiudi</button>
+                                    <div className="modal-header">
+                                        <h5 className="modal-title">Seleziona un foglio per ciascun file:</h5>
+                                        <button type="button" className="btn-close" onClick={() => setIsModalOpen(false)}></button>
+                                    </div>
+                                    <div className="modal-body">
+                                        {sheetChoices.map((choice, idx) => (
+                                            <div key={idx}>
+                                                <label>{`File: ${choice.name}`}</label>
+                                                <select
+                                                    className="form-select mt-2 mb-3"
+                                                    value={selectedSheet[choice.name] || ''}
+                                                    onChange={(e) => handleSheetSelection(choice.name, e.target.value)}
+                                                >
+                                                    <option value="">-- Seleziona un foglio --</option>
+                                                    {choice.sheetNames.map((sheet, index) => (
+                                                        <option key={index} value={sheet}>{sheet}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="modal-footer">
+                                        <button className="btn btn-primary" onClick={submitWithSheetSelection}>Processa File</button>
+                                        <button className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>Chiudi</button>
+                                    </div>
                                 </div>
                             </div>
-                        )}
+                        </div>
+
+                        {/* Backdrop per la Modal di Bootstrap */}
+                        {isModalOpen && <div className="modal-backdrop fade show"></div>}
 
                     </div>
                     <OldFiles />
