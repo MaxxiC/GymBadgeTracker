@@ -11,20 +11,17 @@ const AppPage = () => {
     const apiUrl = process.env.REACT_APP_API_URL;
 
     const [selectedFiles, setSelectedFiles] = useState([]);
-    const [sheetChoices, setSheetChoices] = useState([]); // Stato per mantenere i nomi dei fogli
-    const [selectedSheet, setSelectedSheet] = useState({}); // Stato per memorizzare il foglio scelto per ogni file
 
     const [availableFilters, setAvailableFilters] = useState([]);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [selectedFilters, setSelectedFilters] = useState([]); // Stato per memorizzare i filtri del file scelti
-    const [useFilters, setUseFilters] = useState(true); // Stato per capire se i filtri sono stati selezioni e/o non usati
+    const [useFilters, setUseFilters] = useState(false); // Stato per capire se i filtri sono stati selezioni e/o non usati per abilitare o meno il tasto upload
 
     const [sheetNamesMap, setSheetNamesMap] = useState({}); // Mappa dei nomi dei fogli
     const [allSheetsSelected, setAllSheetsSelected] = useState(false);
 
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef(null);
-    const [isModalOpen, setIsModalOpen] = useState(false); //old modal da cancellare selezione sheet
 
     // Funzione generica per inviare una richiesta al backend
     const sendRequest = async (formData) => {
@@ -58,72 +55,62 @@ const AppPage = () => {
         }
 
         const formData = new FormData();
-        Array.from(selectedFiles).forEach(file => formData.append('files', file));
+
+        // Aggiungi i file e i fogli selezionati
+        const sheetNamesArray = [];
+        Array.from(selectedFiles).forEach(file => {
+            formData.append('files', file); // Aggiungi il file
+
+            const selectedSheet = sheetNamesMap[file.name]; // Ottieni il nome del foglio per il file
+            if (selectedSheet) {
+                sheetNamesArray.push({ fileName: file.name, sheetName: selectedSheet }); // Aggiungi un oggetto con nome del file e foglio
+            } else {
+                console.error(`Foglio non selezionato per il file ${file.name}`);
+                return;
+            }
+        });
+
+        // Aggiungi l'array dei fogli selezionati
+        formData.append('sheetNames', JSON.stringify(sheetNamesArray)); // Serializza l'array in formato JSON
+
+        // Aggiungi i filtri selezionati se sono stati scelti
+        if (useFilters && selectedFilters.length > 0) {
+            formData.append('filters', JSON.stringify(selectedFilters)); // Serializza i filtri in formato JSON
+        }
+
 
         const { response, result, error } = await sendRequest(formData);
         if (error) return;
 
         if (response.ok) {
-            const filesWithMultipleSheets = result.files.filter(file => file.sheetNames && file.sheetNames.length > 1);
-            if (filesWithMultipleSheets.length > 0) {
-                setSheetChoices(filesWithMultipleSheets.map(file => ({
-                    name: file.originalname,
-                    sheetNames: file.sheetNames,
-                })));
-                setIsModalOpen(true);
-            } else {
-                console.log('File inviati e processati con successo!', result);
-                setSelectedFiles([]); // Svuota la lista dei file al termine
-                setSheetChoices([]);
-            }
+            setSelectedFiles([]);
+
+            setAvailableFilters([]);
+            setIsFilterModalOpen(false);
+            setSelectedFilters([]);
+            setUseFilters(false);
+
+            setSheetNamesMap({});
+            setAllSheetsSelected(false);
+
         } else {
             console.error('Errore durante l\'invio dei file:', result.message);
             alert(result.message);
         }
     };
 
-    // Invio file con nome del foglio selezionato
-    const submitWithSheetSelection = async () => {
-        if (!selectedFiles) {
-            console.error('Nessun file selezionato.');
-            return;
-        }
 
-        const formData = new FormData();
-        Array.from(selectedFiles).forEach(file => formData.append('files', file));
-
-        for (const choice of sheetChoices) {
-            const selectedSheetName = selectedSheet[choice.name];
-            if (!selectedSheetName) continue;
-            formData.append('selectedSheetName', selectedSheetName);
-
-            const { response, result, error } = await sendRequest(formData);
-            if (error) return;
-
-            if (response.ok) {
-                console.log(`File ${choice.name} processato con il foglio ${selectedSheetName} selezionato con successo!`);
-            } else {
-                console.error('Errore durante il processamento del file:', result.message);
-                alert(result.message);
-            }
-        }
-
-        setSelectedFiles([]); // Svuota la lista dei file al termine
-        setIsModalOpen(false); // Chiudi la modal
-    };
-
-    // Gestione selezione foglio
-    const handleSheetSelection = (fileName, sheetName) => {
-        setSelectedSheet({
-            ...selectedSheet,
-            [fileName]: sheetName
-        });
-    };
 
 
 
     // Invio file con nome del foglio selezionato
     const chooseFilters = async () => {
+        // Verifica se ci sono filtri disponibili
+        if (availableFilters.length > 0) {
+            openFilterModal(); // Se i filtri sono già disponibili, apri direttamente la modale
+            return;
+        }
+
         if (!selectedFiles) {
             console.error('Nessun file selezionato.');
             return;
@@ -158,7 +145,7 @@ const AppPage = () => {
             const filters = await response.json();
             setAvailableFilters(filters); // Salva i filtri disponibili nel state
             openFilterModal(); // Apre la modale per la selezione dei filtri
-
+            setUseFilters(true);
         } catch (error) {
             console.error("Errore nel caricamento dei filtri:", error);
         }
@@ -228,6 +215,8 @@ const AppPage = () => {
         });
         setSheetNamesMap(initialSheetNamesMap);
     };
+
+
 
 
     const handleLoadSheets = async (file) => {
@@ -391,7 +380,7 @@ const AppPage = () => {
                                 <button
                                     className='btn btn-link m-1'
                                     onClick={uploadFiles}
-                                    disabled={useFilters || selectedFilters.length > 0} // Disabilita se "useFilters" è falso o "selectedFilters" è vuoto
+                                    disabled={!useFilters} // Disabilita se "useFilters" è falso o "selectedFilters" è vuoto
                                 > Invia Tutto</button>
                             </div>
                         )}
@@ -399,30 +388,37 @@ const AppPage = () => {
                         {/* Modal di Bootstrap */}
                         {isFilterModalOpen && (
                             <>
-                                <div className={`modal fade ${isFilterModalOpen ? 'show' : ''}`} style={{ display: isFilterModalOpen ? 'block' : 'none' }} aria-labelledby="filterModalLabel" aria-hidden="true">
-                                    <div className="modal-dialog">
+                                <div className={`modal  fade ${isFilterModalOpen ? 'show' : ''}`} style={{ display: isFilterModalOpen ? 'block' : 'none' }} aria-labelledby="filterModalLabel" aria-hidden="true">
+                                    <div className="modal-dialog modal-dialog-centered">
                                         <div className="modal-content">
-                                            <div className="modal-header">
-                                                <h5 className="modal-title" id="filterModalLabel">Seleziona i Filtri</h5>
+                                            <div className="modal-header modal-filters-header">
+                                                <h5 className="modal-title" id="filterModalLabel">Seleziona i Filtri **da escludere**</h5>
                                                 <button type="button" className="btn-close" onClick={closeFilterModal}></button>
                                             </div>
-                                            <div className="modal-body">
-                                                <ul>
-                                                    {availableFilters.map((filter, index) => (
-                                                        <li key={index}>
-                                                            <label>
+                                            <div className="modal-body modal-filters-body" style={{ maxHeight: '70dvh', overflowY: 'auto' }}>
+
+                                                <ul className='list-filters'>
+                                                    {sortedFilters.map((filter, index) => (
+                                                        <li key={index} className='mx-1'>
+                                                            <label className="filter-item">
                                                                 <input
+                                                                    id={`filter-${index}`} // ID univoco per ogni input
                                                                     type="checkbox"
                                                                     checked={selectedFilters.includes(filter)}
                                                                     onChange={() => toggleFilter(filter)}
+                                                                    className="filter-checkbox"
                                                                 />
-                                                                {filter}
+                                                                <span className='text-filter filter-label'>
+                                                                    {filter}
+                                                                </span>
                                                             </label>
                                                         </li>
                                                     ))}
+
                                                 </ul>
+
                                             </div>
-                                            <div className="modal-footer">
+                                            <div className="modal-footer modal-filters-footer">
                                                 <button className="btn btn-secondary" onClick={closeFilterModal}>Annulla</button>
                                                 <button className="btn btn-primary" onClick={closeFilterModal}>Conferma</button>
                                             </div>
