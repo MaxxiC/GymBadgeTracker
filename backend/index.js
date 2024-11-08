@@ -297,6 +297,10 @@ app.post('/upload', authenticateToken, upload.array('files', 10), async (req, re
           return; // Non inviare risposta qui
         }
 
+        //prima le statistiche
+        const {ids, rowCount} = await extractIdsAndRowCountFromFirstColumn(buffer, selectedSheet);
+        
+
         // Se è stato fornito un nome di foglio, lo passiamo a processFile
         const modifiedData = await processFile(buffer, selectedSheet, selectedFilters);
 
@@ -311,6 +315,9 @@ app.post('/upload', authenticateToken, upload.array('files', 10), async (req, re
           deleted: false,
           sheet_used_name: sheet_used,
           filters_used: selectedFilters.join(','),
+          tot_row_processed: rowCount,
+          people_processed: ids.join(','),
+          total_people_processed: ids.length,
         });
         await newFile.save();
 
@@ -536,6 +543,38 @@ function autoResizeColumns(worksheet) {
     column.width = maxLength + 2;
   });
   //console.log(`Colonne ridimensionate per il foglio "${worksheet.name}".`);
+}
+
+// Funzione per estrarre gli ID dalla prima colonna
+async function extractIdsAndRowCountFromFirstColumn(buffer, selectedSheet) {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
+
+  // Ottieni il foglio di lavoro selezionato
+  const worksheet = workbook.getWorksheet(selectedSheet);
+
+  if (!worksheet) {
+    throw new Error(`Il foglio '${selectedSheet}' non esiste nel file.`);
+  }
+
+  const ids = new Set();  // Usa un Set per garantire che gli ID siano univoci
+  let rowCount = 0;
+
+  // Itera su tutte le righe del foglio di lavoro
+  worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+    // Incrementa il contatore delle righe
+    rowCount++;
+
+    // Salta la prima riga (intestazione)
+    if (rowNumber > 1) {
+      const id = row.getCell(1).value;  // Estrai il valore dalla prima colonna
+      if (id) {
+        ids.add(id);  // Usa add per garantire l'unicità
+      }
+    }
+  });
+
+  return { ids: Array.from(ids), rowCount };
 }
 
 // Funzione principale per elaborare il file Excel
