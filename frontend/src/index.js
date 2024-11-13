@@ -13,6 +13,11 @@ import RegistrationRoute from './components/RegistrationRoute';
 import { AuthContextProvider } from './context/AuthContext';
 import './style/index.css';
 
+// Forza HTTPS se la connessione è HTTP
+if (window.location.protocol === 'http:') {
+  window.location.href = window.location.href.replace('http:', 'https:');
+}
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
