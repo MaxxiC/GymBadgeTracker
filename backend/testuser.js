@@ -4,7 +4,6 @@ const UserModel = require('./db_model/userModel');
 const FileInModel = require('./db_model/fileInModel');
 const FileOutModel = require('./db_model/fileOutModel');
 const FileStatisticsModel = require('./db_model/file_statisticsModel');
-const ActionsLogModel = require('./db_model/actions_logModel');
 
 const bcrypt = require('bcryptjs');
 
@@ -63,13 +62,7 @@ router.get('/testuser', async (req, res) => {
       });
       await newFileOut.save();
 
-      // Step 6: Logga un'azione di caricamento (upload)
-      const newActionLog = new ActionsLogModel({
-        user_id: savedUser._id,
-        action_type: 'upload',
-        file_id: savedFileIn._id,
-      });
-      await newActionLog.save();
+      
 
       res.status(201).json({ message: 'Test user and associated data created successfully.' });
     } else {

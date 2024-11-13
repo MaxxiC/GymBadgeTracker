@@ -267,24 +267,45 @@ app.post('/upload', authenticateToken, upload.array('files', 10), async (req, re
 
     if (user.n_usage_total > (0 + req.files.length)) {
       // Se è stato fornito, usiamo il nome del foglio inviato dal frontend
-      const selectedSheetName = req.body.selectedSheetName;
+      const sheetNames = JSON.parse(req.body.sheetNames); // Leggi l'array dei fogli
 
-      const filePromises = req.files.map(async (file) => {
+      // Ottieni i filtri se presenti
+      const selectedFilters = req.body.filters ? JSON.parse(req.body.filters) : [];
+
+      // Array per accumulare gli errori
+      const errors = [];
+      const savedFiles = [];
+
+      const filePromises = req.files.map(async (file, index) => {
         const { originalname, buffer } = file;
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.load(buffer);
 
-        // Elenca i nomi dei fogli se ci sono più fogli, altrimenti usa il primo
-        const sheetNames = workbook.worksheets.map(sheet => sheet.name);
-        if (sheetNames.length > 1 && !selectedSheetName) {
-          return { originalname, sheetNames }; // Restituisce i nomi dei fogli per la selezione
+        // Elenca i nomi dei fogli nel file
+        const sheetNamesInFile = workbook.worksheets.map(sheet => sheet.name);
+
+        // Trova il nome del foglio selezionato per il file corrente
+        const selectedSheet = sheetNames.find(item => item.fileName === originalname)?.sheetName;
+
+        if (!selectedSheet) {
+          errors.push({ fileName: originalname, message: `Foglio non selezionato per il file ${originalname}.` });
+          return; // Non inviare risposta qui
         }
 
+        if (!sheetNamesInFile.includes(selectedSheet)) {
+          errors.push({ fileName: originalname, message: `Il foglio ${selectedSheet} non esiste nel file ${originalname}. I fogli disponibili sono: ${sheetNamesInFile.join(', ')}` });
+          return; // Non inviare risposta qui
+        }
+
+        //prima le statistiche
+        const {ids, rowCount} = await extractIdsAndRowCountFromFirstColumn(buffer, selectedSheet);
+        
+
         // Se è stato fornito un nome di foglio, lo passiamo a processFile
-        const modifiedData = await processFile(buffer, selectedSheetName);
+        const modifiedData = await processFile(buffer, selectedSheet, selectedFilters);
 
         
-        const sheet_used = selectedSheetName !== undefined && selectedSheetName !== null ? selectedSheetName : sheetNames[0];
+        const sheet_used = selectedSheet || sheetNames[0];
         
         // 1. Salva il file originale in FileInModel
         const newFile = new FileInModel({
@@ -293,6 +314,10 @@ app.post('/upload', authenticateToken, upload.array('files', 10), async (req, re
           file_data: buffer,
           deleted: false,
           sheet_used_name: sheet_used,
+          filters_used: selectedFilters.join(','),
+          tot_row_processed: rowCount,
+          people_processed: ids.join(','),
+          total_people_processed: ids.length,
         });
         await newFile.save();
 
@@ -307,10 +332,15 @@ app.post('/upload', authenticateToken, upload.array('files', 10), async (req, re
         });
         await modifiedFile.save();
 
-        return { file: modifiedFile, sheetNames };
+        savedFiles.push(modifiedFile); // Aggiungi il file salvato all'array
       });
 
-      const savedFiles = await Promise.all(filePromises);
+      await Promise.all(filePromises);
+
+      // Se ci sono errori, invia la risposta con gli errori
+      if (errors.length > 0) {
+        return res.status(400).json({ message: 'Errore nei file.', errors });
+      }
 
       // Chiama la funzione di creazione log dopo l'operazione
       await createLogDB(req.user.username, 'upload', 'File caricato con successo.');
@@ -318,17 +348,36 @@ app.post('/upload', authenticateToken, upload.array('files', 10), async (req, re
       user.n_usage_total -= req.files.length;
       await user.save();
 
-      res.status(201).json({ message: 'File caricati e processati con successo', files: savedFiles });
-
+      return res.status(201).json({ message: 'File caricati e processati con successo', files: savedFiles }); // UNA SOLA risposta
     } else {
-      res.status(400).json({ message: 'L\'utente ha terminato gli utilizzi a sua disposizione' });
+      return res.status(400).json({ message: 'L\'utente ha terminato gli utilizzi a sua disposizione' });
     }
   } catch (error) {
     console.error('Errore durante il caricamento e il processamento dei file:', error);
-    res.status(500).json({ message: 'Errore durante il caricamento e il processamento dei file.' });
+    return res.status(500).json({ message: 'Errore durante il caricamento e il processamento dei file.' });
   }
 });
 
+
+
+
+
+app.post('/getSheetNames', authenticateToken, upload.single('file'), async (req, res) => {
+  try {
+      const { buffer } = req.file;
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(buffer);
+
+      // Elenca i nomi dei fogli
+      const sheetNames = workbook.worksheets.map(sheet => sheet.name);
+      
+      //console.log("Sheet Names:", sheetNames); 
+      res.json(sheetNames); // Restituisce direttamente l'array dei nomi dei fogli
+  } catch (error) {
+      console.error("Errore nel caricamento dei fogli:", error);
+      res.status(500).json({ error: "Errore durante il caricamento dei fogli" });
+  }
+});
 
 
 
@@ -366,6 +415,62 @@ app.get('/download/:fileId', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Errore durante il download del file.' });
   }
 });
+
+
+
+//api per ritornare solo i nomi dei filtri all'utente
+app.post('/getFilters', authenticateToken, upload.array('files'), async (req, res) => {
+  try {
+      const files = req.files;
+      const sheetNames = req.body.sheetNames; // Array dei nomi dei fogli selezionati
+
+      let allFilters = new Set();
+
+      for (let i = 0; i < files.length; i++) {
+          const fileBuffer = files[i].buffer;
+          const selectedSheetName = Array.isArray(sheetNames) ? sheetNames[i] : sheetNames;
+
+          const workbook = new ExcelJS.Workbook();
+          await workbook.xlsx.load(fileBuffer);
+          const worksheet = workbook.getWorksheet(selectedSheetName);
+
+          if (!worksheet) {
+              return res.status(400).json({ error: `Foglio ${selectedSheetName} non trovato.` });
+          }
+
+          // Trova l'indice della colonna "Attività"
+          const columns = worksheet.getRow(1).values; // Ottieni i valori della prima riga (intestazioni)
+          const activityColumnIndex = columns.indexOf('Attività'); // Trova l'indice della colonna "Attività"
+
+          if (activityColumnIndex === -1) {
+              return res.status(400).json({ error: "Colonna 'Attività' non trovata." });
+          }
+
+          // Estrai i valori unici dalla colonna "Attività"
+          const filterValues = new Set();
+          worksheet.eachRow((row, rowIndex) => {
+              if (rowIndex === 1) return; // Ignora l'intestazione
+
+              const activityValue = row.getCell(activityColumnIndex).value; // Accedi alla cella con l'indice corretto
+              if (activityValue) filterValues.add(activityValue);
+          });
+
+          filterValues.forEach(value => allFilters.add(value));
+      }
+
+      res.json(Array.from(allFilters)); // Restituisci l'array di filtri unici
+  } catch (error) {
+      console.error("Errore nel caricamento dei filtri:", error);
+      res.status(500).json({ error: "Errore durante il caricamento dei filtri" });
+  }
+});
+
+
+
+
+
+
+
 
 
 
@@ -440,9 +545,41 @@ function autoResizeColumns(worksheet) {
   //console.log(`Colonne ridimensionate per il foglio "${worksheet.name}".`);
 }
 
+// Funzione per estrarre gli ID dalla prima colonna
+async function extractIdsAndRowCountFromFirstColumn(buffer, selectedSheet) {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
+
+  // Ottieni il foglio di lavoro selezionato
+  const worksheet = workbook.getWorksheet(selectedSheet);
+
+  if (!worksheet) {
+    throw new Error(`Il foglio '${selectedSheet}' non esiste nel file.`);
+  }
+
+  const ids = new Set();  // Usa un Set per garantire che gli ID siano univoci
+  let rowCount = 0;
+
+  // Itera su tutte le righe del foglio di lavoro
+  worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+    // Incrementa il contatore delle righe
+    rowCount++;
+
+    // Salta la prima riga (intestazione)
+    if (rowNumber > 1) {
+      const id = row.getCell(1).value;  // Estrai il valore dalla prima colonna
+      if (id) {
+        ids.add(id);  // Usa add per garantire l'unicità
+      }
+    }
+  });
+
+  return { ids: Array.from(ids), rowCount };
+}
+
 // Funzione principale per elaborare il file Excel
 // Modifica della funzione processFile per accettare il nome del foglio da usare
-async function processFile(buffer, sheetName = null) {
+async function processFile(buffer, sheetName = null, filters) {
   try {
     console.log('-------');
     console.log('---Inizio elaborazione del file...');
@@ -467,7 +604,8 @@ async function processFile(buffer, sheetName = null) {
     const filteredWorksheet = workbook.addWorksheet('RigheCoinvolte');
     filteredWorksheet.addRow(modifiedWorksheet.getRow(1).values).commit();
 
-    const filterValues = ['STAFF', '--'];
+    //const filterValues = ['STAFF', '--'];
+    const filterValues = filters;
     const newColumn = modifiedWorksheet.columnCount + 1;
     highlightAndCountDuplicates(modifiedWorksheet, filterValues, newColumn, filteredWorksheet);
 
