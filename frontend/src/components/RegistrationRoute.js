@@ -6,8 +6,8 @@ import { useAuthContext } from '../context/AuthContext';
 const RegistrationRoute = ({ children }) => {
     const { user } = useAuthContext();
 
-    // Controlla se l'utente è autenticato e se è "testuser123"
-    if (!user || user.username !== 'testuser123') {
+    // Controlla se l'utente è autenticato e se è admin
+    if (!user || localStorage.getItem('adminRole') != 1) {
         return <Navigate to="/" />;
     }
 
