@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import HomePage from './components/HomePage';
+import AdminPage from './components/AdminPage';
 import AppPage from './components/AppPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
@@ -37,6 +38,11 @@ root.render(
             <Route path="/register" element={
               <RegistrationRoute>
                 <RegisterPage />
+              </RegistrationRoute>
+            } />
+            <Route path="/dashboard" element={
+              <RegistrationRoute>
+                <AdminPage />
               </RegistrationRoute>
             } />
             <Route path="*" element={<Navigate to="/" replace />} />
