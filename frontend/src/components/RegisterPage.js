@@ -34,7 +34,8 @@ const RegisterPage = () => {
                 const response = await axios.post(`${apiUrl}/register`, {
                     username: username.toLowerCase(),
                     email: email.toLowerCase(),
-                    password
+                    password,
+                    isAdmin: localStorage.getItem("adminRole"),
                 }, {
                     headers: {
                         Authorization: `Bearer ${token}`  // Includi il token nell'intestazione
@@ -50,7 +51,7 @@ const RegisterPage = () => {
                 if (error.response && error.response.status === 400) {
                     setError('L\'email è già registrata o i dati non sono validi.');
                 } else if (error.response && error.response.status === 403) {
-                    setError('Accesso negato: solo testuser123 può eseguire questa operazione.');
+                    setError('Accesso negato: solo un admin può eseguire questa operazione.');
                 } else {
                     setError('Errore di rete o del server.');
                 }

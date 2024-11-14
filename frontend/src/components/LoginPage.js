@@ -35,17 +35,22 @@ const LoginPage = () => {
                 });
 
                 // Estrarre il token dalla risposta del server
-                const { token } = response.data;
+                const { token , expiresInMS , isAdmin } = response.data;
 
                 // Salva il token nel localStorage
                 localStorage.setItem('token', token);
 
                 // Puoi anche salvare informazioni sull'utente
-                const expiresAt = new Date().getTime() + 60 * 60 * 1000; // 1 ora di validità del token
+                const expiresAt = new Date().getTime() + expiresInMS; // 1 ora di validità del token ricevuta dal server
                 const user = { username };
 
                 localStorage.setItem('user', JSON.stringify(user));
                 localStorage.setItem('expiresAt', expiresAt.toString());
+                localStorage.setItem('adminRole', isAdmin);
+                
+    console.log(isAdmin);
+    
+    console.log(localStorage.getItem('adminRole'));
 
                 // Aggiorna lo stato globale (AuthContext)
                 dispatch({ type: 'LOGIN', payload: { user, expiresAt } });
