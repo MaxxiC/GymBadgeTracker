@@ -8,6 +8,7 @@ const UserSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
   latest_login: { type: Date, default: Date.now },
   n_usage_total: { type: Number, default: 0 },  // Numero di download disponibili all'utente
+  user_type: {type: String }
 });
 
 module.exports = mongoose.model('User', UserSchema);

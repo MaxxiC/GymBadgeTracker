@@ -148,8 +148,19 @@ app.post('/login', loginLimiter, async (req, res) => {
     }
 
     // Se tutto è corretto, genera il token JWT
-    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    const expiresInS = 60 * 60 * 1000; // 1 ora di validità del token in Secondi
+    const expiresInMS = expiresInS * 1000; // Validità del token in MilliSecond
+    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: expiresInS });
     console.log('Login riuscito, token generato');
+
+    let isAdmin;
+    if (user.user_type && user.user_type === "admin") {
+      isAdmin = 1;
+    } else {
+      isAdmin = 0;
+    }
+    console.log(isAdmin);
+    
 
     user.latest_login = Date.now();
     await user.save();
@@ -169,7 +180,7 @@ app.post('/login', loginLimiter, async (req, res) => {
     const logMessage = `Login riuscito da IP: ${ipAddress} - ${deviceType} con OS ${osName} e browser ${browserName}`;
     await createLogDB(user.username, 'login', logMessage);
 
-    res.json({ message: 'Login riuscito', token });
+    res.json({ message: 'Login riuscito', token, expiresInMS, isAdmin });
   } catch (err) {
     console.error('Errore durante il login:', err);
     res.status(500).send('Errore interno del server');
@@ -637,13 +648,15 @@ async function processFile(buffer, sheetName = null, filters) {
 // Middleware per verificare l'utente autorizzato
 async function verifyAuthorizedUser(req, res, next) {
   try {
-    console.log("entroooooo");
+    //console.log("entroooooo");
 
     // Assumi che l'utente sia autenticato e che l'identità sia disponibile nel `req.user`
-    if (req.user && req.user.username === 'testuser123') {
+    if (req.user && req.body.isAdmin == 1) {
       next(); // Passa alla route successiva
     } else {
-      return res.status(403).send('Accesso negato: solo testuser123 può eseguire questa operazione');
+      console.log(req.body.isAdmin);
+      console.log("Utente non abilitato");
+      return res.status(403).send('Accesso negato: solo un admin può eseguire questa operazione');
     }
   } catch (error) {
     console.error('Errore durante la verifica dell\'utente:', error);
