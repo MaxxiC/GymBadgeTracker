@@ -18,7 +18,7 @@ const connectDB = require('./db');  // Assumendo che il file di connessione si c
 const UserModel = require('./db_model/userModel');
 const FileInModel = require('./db_model/fileInModel');
 const FileOutModel = require('./db_model/fileOutModel');
-const FileStatisticsModel = require('./db_model/file_statisticsModel');
+//const FileStatisticsModel = require('./db_model/file_statisticsModel');
 //const ActionsLogModel = require('./db_model/actions_logModel');
 const LoggerModel = require('./db_model/loggerModel');
 
@@ -637,6 +637,14 @@ async function processFile(buffer, sheetName = null, filters) {
 
 
 
+//
+// Dashboard - Admin - Statistiche
+//
+
+const statsController = require('./statsController');
+app.get('/admin/total-users', statsController.getTotalUsers);
+app.get('/admin/file-stats',  statsController.getFileStatistics);
+app.get('/admin/recent-logs', statsController.getRecentLogs);
 
 
 

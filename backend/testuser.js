@@ -3,7 +3,7 @@ const router = express.Router();
 const UserModel = require('./db_model/userModel');
 const FileInModel = require('./db_model/fileInModel');
 const FileOutModel = require('./db_model/fileOutModel');
-const FileStatisticsModel = require('./db_model/file_statisticsModel');
+//const FileStatisticsModel = require('./db_model/file_statisticsModel');
 
 const bcrypt = require('bcryptjs');
 
@@ -45,12 +45,12 @@ router.get('/testuser', async (req, res) => {
       const savedFileIn = await newFileIn.save();
 
       // Step 4: Crea una statistica collegata al file
-      const newFileStat = new FileStatisticsModel({
-        file_id: savedFileIn._id,
-        total_rows: 600,
-        processed_rows: 50,
-      });
-      await newFileStat.save();
+      // const newFileStat = new FileStatisticsModel({
+      //   file_id: savedFileIn._id,
+      //   total_rows: 600,
+      //   processed_rows: 50,
+      // });
+      // await newFileStat.save();
 
       // Step 5: Crea un file di output per l'utente collegato al file di input
       const newFileOut = new FileOutModel({
