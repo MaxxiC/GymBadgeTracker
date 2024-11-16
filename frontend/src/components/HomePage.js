@@ -12,7 +12,7 @@ const HomePage = () => {
   const { isAuthenticated } = useAuthContext();
 
   return (
-    <div className="container-fluid">
+    <div className="container-fluid index-container">
       <MainBar />
       {/* Main Content */}
       <div className='d-flex flex-column justify-content-center m-auto'>

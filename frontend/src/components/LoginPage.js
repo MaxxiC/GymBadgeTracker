@@ -92,7 +92,7 @@ const LoginPage = () => {
 
 
     return (
-        <div className="container-fluid">
+        <div className="container-fluid index-container">
             <MainBar />
             <div className="d-flex justify-content-center align-items-center m-auto">
                 <div className="card login_form">

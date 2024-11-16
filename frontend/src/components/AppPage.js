@@ -309,7 +309,7 @@ const AppPage = () => {
 
 
     return (
-        <div className="container-fluid">
+        <div className="container-fluid index-container">
             <MainBar />
             <div className='d-flex flex-column justify-content-center m-auto'>
                 <div
