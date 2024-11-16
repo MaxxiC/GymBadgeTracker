@@ -161,8 +161,12 @@ app.post('/login', loginLimiter, async (req, res) => {
     }
     console.log(isAdmin);
     
-
+    if(!user.first_login){
+    user.first_login = Date.now();
+    }
+    
     user.latest_login = Date.now();
+    user.total_login++;
     await user.save();
 
     // Chiama la funzione di creazione log dopo l'operazione
