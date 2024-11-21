@@ -4,11 +4,13 @@ import { useTranslation } from 'react-i18next';
 import '../style/HomePage.css';
 import MainBar from './MainBar';
 import OldFiles from './OldFiles';
+import { useAuthContext } from '../context/AuthContext';
 
 const AppPage = () => {
     const { t } = useTranslation();
     // Usa la variabile d'ambiente
     const apiUrl = process.env.REACT_APP_API_URL;
+    const { user } = useAuthContext();
 
     const [selectedFiles, setSelectedFiles] = useState([]);
 
@@ -307,6 +309,12 @@ const AppPage = () => {
     });
     
 
+    function capitalizeFirstLetter(string) {
+        if (!string) return ""; // Gestisce il caso di stringa vuota o undefined
+        return string.charAt(0).toUpperCase() + string.slice(1);
+      }
+      
+
 
     return (
         <div className="container-fluid index-container">
@@ -319,7 +327,7 @@ const AppPage = () => {
                     onDragOver={handleDragOver}
                     onDrop={handleDrop} >
                     <div className="col-12 d-flex flex-column  m-auto text-center align-items-center">
-                        <h1 className='m-2'>{t('welcome')}</h1>
+                        <h1 className='m-2'>{t('welcome')} {capitalizeFirstLetter(user.username)}</h1>
                         <h4 className='m-2 blockquote mb-5'>{t('subtitle')}</h4>
 
                         <div className="file-input-container" onClick={() => fileInputRef.current.click()} >
@@ -341,13 +349,13 @@ const AppPage = () => {
                                 <table>
                                     {Array.from(selectedFiles).map((file, i) => (
                                         <tr key={i}>
-                                            <td className='mx-1 border-1'>{file.name}</td>
-                                            <td className='mx-1 border-1'>
+                                            <td className='p-2 '>{file.name}</td>
+                                            <td className='p-2 '>
                                                 {sheetNamesMap[file.name] === null ? (
                                                     // Mostra il pulsante "Load fogli" se il foglio non è ancora caricato
                                                     <button
                                                         type="button"
-                                                        className="btn btn-primary"
+                                                        className="btn btn-primary btn-link"
                                                         onClick={() => handleLoadSheets(file)}
                                                     >
                                                         Load fogli
@@ -369,19 +377,22 @@ const AppPage = () => {
                                                 )}
                                             </td>
                                             <td>
-                                                <button type="button" className="btn btn-danger mx-1" onClick={() => handleDeleteFile(i)} >
+                                                <button type="button" className="btn btn-danger m-1" onClick={() => handleDeleteFile(i)} >
                                                     <i className="bi bi-trash"></i>
                                                 </button>
                                             </td>
                                         </tr>
                                     ))}
                                 </table>
+                                <hr className='m-0 p-0' />
+                                    
                                 <button className='btn btn-link m-1' onClick={chooseFilters} disabled={!allSheetsSelected}>{selectedFilters.length > 0 ? 'Cambia Filtri' : 'Scegli Filtri'}</button>
                                 <button
                                     className='btn btn-link m-1'
                                     onClick={uploadFiles}
                                     disabled={!useFilters} // Disabilita se "useFilters" è falso o "selectedFilters" è vuoto
                                 > Invia Tutto</button>
+                                
                             </div>
                         )}
 
