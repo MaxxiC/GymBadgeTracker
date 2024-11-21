@@ -207,7 +207,7 @@ const OldFiles = () => {
                                     <td className='mx-1'>{file.file_name}</td>
                                     <td className='mx-1'>{file.sheet_used_name}</td>
                                     <td className='mx-1'>{formatCreationDate(file.created_at)}</td>
-                                    <td className='mx-1'><button onClick={() => handleDownload(file._id)} className="btn btn-primary" >
+                                    <td className='mx-1'><button onClick={() => handleDownload(file._id)} className="btn btn-primary btn-link" >
                                         <i className="bi bi-download "></i>
                                     </button></td>
                                     <td className='mx-1'><button onClick={() => catchDelete(file._id)} className="btn btn-danger" >

@@ -124,7 +124,7 @@ const LoginPage = () => {
                                 />
                             </div>
                             {error && <div className="alert alert-danger">{error}</div>} {/* Mostra gli errori */}
-                            <button type="submit" className="btn btn-primary w-100"
+                            <button type="submit" className="btn btn-primary btn-link w-100"
                                 disabled={loading}  // Disabilita il bottone durante il caricamento
                             >
                                 {loading ? t('login_loading_btn') : t('login_send_btn')}

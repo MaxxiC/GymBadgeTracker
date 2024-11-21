@@ -24,11 +24,11 @@ const HomePage = () => {
             <h2>{t('welcome')}</h2>
             <p>{t('subtitle')}</p>
             {isAuthenticated ? (
-              <Link to="/app" className="btn btn-primary">
+              <Link to="/app" className="btn btn-primary btn-link">
                 {t('goToApp')}
               </Link>
             ) : (
-              <Link to="/login" className="btn btn-primary">
+              <Link to="/login" className="btn btn-primary btn-link">
                 {t('goToLogin')}
               </Link>
             )}

@@ -109,7 +109,7 @@ const RegisterPage = () => {
                             </div>
                             {error && <div className="alert alert-danger">{error}</div>} {/* Mostra errori */}
                             {success && <div className="alert alert-success">{success}</div>} {/* Mostra messaggio di successo */}
-                            <button type="submit" className="btn btn-primary w-100"
+                            <button type="submit" className="btn btn-primary btn-gym-color w-100"
                                 disabled={loading}
                             >
                                 {loading ? t('register_loading_btn') : t('register_send_btn')}
