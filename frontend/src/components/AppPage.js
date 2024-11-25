@@ -299,22 +299,26 @@ const AppPage = () => {
     ];
     
     const sortedFilters = availableFilters.sort((a, b) => {
-        // Criterio 1: Filtri che contengono parole chiave prioritarie vanno in cima
-        const aContainsPriority = prioritizedKeywords.some(keyword => a.includes(keyword));
-        const bContainsPriority = prioritizedKeywords.some(keyword => b.includes(keyword));
+        // Convertiamo i filtri in minuscolo per un confronto case-insensitive
+        const aLower = a.toLowerCase();
+        const bLower = b.toLowerCase();
+    
+        // Criterio 1: Filtri che contengono parole chiave prioritarie (case-insensitive) vanno in cima
+        const aContainsPriority = prioritizedKeywords.some(keyword => aLower.includes(keyword.toLowerCase()));
+        const bContainsPriority = prioritizedKeywords.some(keyword => bLower.includes(keyword.toLowerCase()));
     
         if (aContainsPriority && !bContainsPriority) return -1;
         if (!aContainsPriority && bContainsPriority) return 1;
     
-        // Criterio 2: Filtri che iniziano con "--" vengono subito dopo
+        // Criterio 2: Filtri che iniziano con "--" (case-insensitive) vengono subito dopo
         const aStartsWithDash = a.startsWith("--");
         const bStartsWithDash = b.startsWith("--");
     
         if (aStartsWithDash && !bStartsWithDash) return -1;
         if (!aStartsWithDash && bStartsWithDash) return 1;
     
-        // Criterio 3: Ordine alfabetico per tutti gli altri
-        return a.localeCompare(b);
+        // Criterio 3: Ordine alfabetico (case-insensitive)
+        return aLower.localeCompare(bLower);
     });
     
     
