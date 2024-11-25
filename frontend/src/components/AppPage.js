@@ -289,13 +289,22 @@ const AppPage = () => {
         );
     };
 
-    const sortedFilters = availableFilters.sort((a, b) => {
-        // Criterio 1: Filtri che contengono "STAFF" vanno in cima
-        const aContainsStaff = a.includes("STAFF");
-        const bContainsStaff = b.includes("STAFF");
+    const prioritizedKeywords = [
+        "STAFF",
+        "Corsista",
+        "Reception",
+        "Affitto PT mese",
+        "Forze dell'ordine",
+        "guardia di finanza"
+    ];
     
-        if (aContainsStaff && !bContainsStaff) return -1;
-        if (!aContainsStaff && bContainsStaff) return 1;
+    const sortedFilters = availableFilters.sort((a, b) => {
+        // Criterio 1: Filtri che contengono parole chiave prioritarie vanno in cima
+        const aContainsPriority = prioritizedKeywords.some(keyword => a.includes(keyword));
+        const bContainsPriority = prioritizedKeywords.some(keyword => b.includes(keyword));
+    
+        if (aContainsPriority && !bContainsPriority) return -1;
+        if (!aContainsPriority && bContainsPriority) return 1;
     
         // Criterio 2: Filtri che iniziano con "--" vengono subito dopo
         const aStartsWithDash = a.startsWith("--");
@@ -307,6 +316,7 @@ const AppPage = () => {
         // Criterio 3: Ordine alfabetico per tutti gli altri
         return a.localeCompare(b);
     });
+    
     
 
     function capitalizeFirstLetter(string) {
