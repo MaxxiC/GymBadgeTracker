@@ -7,6 +7,9 @@
   --color_one: #161616;
   --color_two: #000000;
   --color_three: #0C0C0C;
+
+  --color_bg_modals: #161616;
+  --color_border_modals: rgb(209, 77, 0);
   /* --bg_color_btn_home: #d1892b; */
 }
 
@@ -211,27 +214,27 @@ body {
 
 
 .modal-filters-header {
-  background-color: #000000;
-  border-top: 2px solid red;
-  border-left: 2px solid red;
-  border-right: 2px solid red;
-  border-bottom: 0px solid red;
+  background-color: var(--color_bg_modals);
+  border-top: 2px solid var(--color_border_modals);
+  border-left: 2px solid var(--color_border_modals);
+  border-right: 2px solid var(--color_border_modals);
+  border-bottom: 0px solid var(--color_border_modals);
 }
 
 .modal-filters-body {
-  background-color: #000000;
-  border-top: 0px solid red;
-  border-left: 2px solid red;
-  border-right: 2px solid red;
-  border-bottom: 0px solid red;
+  background-color: var(--color_bg_modals);
+  border-top: 0px solid var(--color_border_modals);
+  border-left: 2px solid var(--color_border_modals);
+  border-right: 2px solid var(--color_border_modals);
+  border-bottom: 0px solid var(--color_border_modals);
 }
 
 .modal-filters-footer {
-  background-color: #000000;
-  border-top: 0px solid red;
-  border-left: 2px solid red;
-  border-right: 2px solid red;
-  border-bottom: 2px solid red;
+  background-color: var(--color_bg_modals);
+  border-top: 0px solid var(--color_border_modals);
+  border-left: 2px solid var(--color_border_modals);
+  border-right: 2px solid var(--color_border_modals);
+  border-bottom: 2px solid var(--color_border_modals);
 }
 
 
