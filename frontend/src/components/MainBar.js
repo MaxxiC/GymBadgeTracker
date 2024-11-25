@@ -32,9 +32,8 @@ const MainBar = () => {
 
             </div>
             <div className="col-2 d-flex align-items-center justify-content-end">
-                {isAuthenticated && <button className="btn btn-link btn-link-h m-1 text-decoration-none" onClick={handleLogout}>{t('btn_logout')}</button>}
-                <button className="btn btn-link btn-link-h m-1 text-decoration-none" onClick={() => navigate(`/info`)}>{t('btn_info')}</button>
-                <button className="btn btn-link btn-link-h m-1 text-decoration-none" onClick={() => navigate(`/about`)}>{t('btn_about')}</button>
+                <button className="btn btn-link btn-link-h btn-gym-color m-1 " onClick={() => navigate(`/info`)}>{t('btn_info')}</button>
+                <button className="btn btn-link btn-link-h btn-gym-color m-1 " onClick={() => navigate(`/Contattaci`)}>{t('Contattaci')}</button>
                 <select
                     className="form-control form-control-sm m-1"
                     onChange={(e) => changeLanguage(e.target.value)}
@@ -43,6 +42,8 @@ const MainBar = () => {
                     <option value="it">ITA</option>
                     <option value="en">ENG</option>
                 </select>
+                
+                {isAuthenticated && <button className="btn btn-link btn-link-h m-1 text-decoration-none" onClick={handleLogout}><i class="bi bi-person-circle"></i></button>}
             </div>
         </div>
 
