@@ -190,15 +190,15 @@ const OldFiles = () => {
         <>
             {files && files.length > 0 &&
                 <div className='col-12 d-flex flex-column m-auto text-center align-items-center'>
-                    <h3>File caricati precedentemente</h3>
+                    <h3>{t('oldfiles_title')}</h3>
                     <table className="table table-dark table-striped tbl-m">
                         <thead>
                             <tr>
-                                <td className='mx-1'>Name</td>
-                                <td className='mx-1'>Sheet Name</td>
-                                <td className='mx-1'>Date</td>
-                                <td className='mx-1'>Download</td>
-                                <td className='mx-1'>Delete</td>
+                                <td className='mx-1'>{t('oldfiles_tbl_col_name')}</td>
+                                <td className='mx-1'>{t('oldfiles_tbl_col_sheet')}</td>
+                                <td className='mx-1'>{t('oldfiles_tbl_col_data')}</td>
+                                <td className='mx-1'>{t('oldfiles_tbl_col_download')}</td>
+                                <td className='mx-1'>{t('oldfiles_tbl_col_delete')}</td>
                             </tr>
                         </thead>
                         <tbody>

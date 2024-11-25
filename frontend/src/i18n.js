@@ -26,6 +26,13 @@ i18n
           password_insert: 'Inserisci la password',
           login_send_btn: 'Accedi',
           login_loading_btn: 'Attendi',
+
+          oldfiles_title: 'File caricati precedentemente',
+          oldfiles_tbl_col_name: 'Nome File',
+          oldfiles_tbl_col_sheet: 'Nome Foglio',
+          oldfiles_tbl_col_data: 'Data',
+          oldfiles_tbl_col_download: 'Scarica',
+          oldfiles_tbl_col_delete: 'Elimina',
         },
       },
       en: {
@@ -48,6 +55,13 @@ i18n
           password_insert: 'Insert your password',
           login_send_btn: 'Login',
           login_loading_btn: 'Wait',
+
+          oldfiles_title: 'Previously uploaded files',
+          oldfiles_tbl_col_name: 'File Name',
+          oldfiles_tbl_col_sheet: 'Sheet Name',
+          oldfiles_tbl_col_data: 'Date',
+          oldfiles_tbl_col_download: 'Download',
+          oldfiles_tbl_col_delete: 'Delete',
         },
       },
     },
