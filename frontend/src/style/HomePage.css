@@ -215,26 +215,26 @@ body {
 
 .modal-filters-header {
   background-color: var(--color_bg_modals);
-  border-top: 2px solid var(--color_border_modals);
-  border-left: 2px solid var(--color_border_modals);
-  border-right: 2px solid var(--color_border_modals);
+  border-top: 3px solid var(--color_border_modals);
+  border-left: 3px solid var(--color_border_modals);
+  border-right: 3px solid var(--color_border_modals);
   border-bottom: 0px solid var(--color_border_modals);
 }
 
 .modal-filters-body {
   background-color: var(--color_bg_modals);
   border-top: 0px solid var(--color_border_modals);
-  border-left: 2px solid var(--color_border_modals);
-  border-right: 2px solid var(--color_border_modals);
+  border-left: 3px solid var(--color_border_modals);
+  border-right: 3px solid var(--color_border_modals);
   border-bottom: 0px solid var(--color_border_modals);
 }
 
 .modal-filters-footer {
   background-color: var(--color_bg_modals);
   border-top: 0px solid var(--color_border_modals);
-  border-left: 2px solid var(--color_border_modals);
-  border-right: 2px solid var(--color_border_modals);
-  border-bottom: 2px solid var(--color_border_modals);
+  border-left: 3px solid var(--color_border_modals);
+  border-right: 3px solid var(--color_border_modals);
+  border-bottom: 3px solid var(--color_border_modals);
 }
 
 
