@@ -26,7 +26,7 @@ const MainBar = () => {
 
         <div className="row text-white p-2">
             <div className="col-2 align-self-center">
-                <button className="logo-container" onClick={() => navigate(`/`)}></button>
+                <button className="logo-container border-0" onClick={() => navigate(`/`)}></button>
             </div>
             <div className="col-8 d-flex align-items-center justify-content-end">
 

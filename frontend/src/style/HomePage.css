@@ -86,6 +86,8 @@ body {
   height: 50px;
   width: 50px;
   /* Altezza massima desiderata */
+  /* box-shadow: 0 0 5px 0px var(--bg_color_btn_home);
+  background-color: transparent; */
 }
 
 .exe-container {
