@@ -9,7 +9,6 @@ i18n
       it: {
         translation: {
           welcome: 'Benvenuto',
-          subtitle: 'Prova il servizio',
           goToApp: 'Vai all\'app',
           goToLogin: 'LOGIN',
           appPageTitle: 'Titolo della Pagina App',
@@ -33,12 +32,24 @@ i18n
           oldfiles_tbl_col_data: 'Data',
           oldfiles_tbl_col_download: 'Scarica',
           oldfiles_tbl_col_delete: 'Elimina',
+
+          appPage_welcome: 'Benvenuto',
+          appPage_subtitle: 'Prova il servizio',
+          appPage_chooseFile: 'Scegli il File',
+          appPage_btn_load_sheet: 'Carica i fogli',
+          appPage_btn_filter_change: 'Cambia Filtri',
+          appPage_btn_filter_choose: 'Scegli Filtri',
+          appPage_btn_send: 'Elabora tutto',
+
+          modal_filters_title: 'Attività trovate nel file che verranno processate',
+          modal_filters_subtitle: 'Deselezionare i valori **da non controllare**',
+          modal_filters_btn_close: 'Annulla',
+          modal_filters_btn_confirm: 'Conferma',
         },
       },
       en: {
         translation: {
           welcome: 'Welcome',
-          subtitle: 'Try our service',
           goToApp: 'Go to App',
           goToLogin: 'LOGIN',
           appPageTitle: 'App Page Title',
@@ -62,6 +73,19 @@ i18n
           oldfiles_tbl_col_data: 'Date',
           oldfiles_tbl_col_download: 'Download',
           oldfiles_tbl_col_delete: 'Delete',
+
+          appPage_welcome: 'Welcome',
+          appPage_subtitle: 'Try our service',
+          appPage_chooseFile: 'Choose your File',
+          appPage_btn_load_sheet: 'Load Sheets',
+          appPage_btn_filter_change: 'Change Filters',
+          appPage_btn_filter_choose: 'Choose Filters',
+          appPage_btn_send: 'Process everything',
+
+          modal_filters_title: 'Activities found in the file that will be processed',
+          modal_filters_subtitle: 'Uncheck the value to **don\'t check**',
+          modal_filters_btn_close: 'Cancel',
+          modal_filters_btn_confirm: 'Confirm',
         },
       },
     },

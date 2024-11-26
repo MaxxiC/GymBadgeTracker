@@ -341,13 +341,13 @@ const AppPage = () => {
                     onDragOver={handleDragOver}
                     onDrop={handleDrop} >
                     <div className="col-12 d-flex flex-column  m-auto text-center align-items-center">
-                        <h1 className='m-2'>{t('welcome')} {capitalizeFirstLetter(user.username)}</h1>
-                        <h4 className='m-2 blockquote mb-5'>{t('subtitle')}</h4>
+                        <h1 className='m-2'>{t('appPage_welcome')} {capitalizeFirstLetter(user.username)}</h1>
+                        <h4 className='m-2 blockquote mb-5'>{t('appPage_subtitle')}</h4>
 
                         <div className="file-input-container" onClick={() => fileInputRef.current.click()} >
                             <label htmlFor="file-input" className="file-input-label">
                                 <span className="file-input-icon">📂</span>
-                                <span className="file-input-text">{t('chooseFile')}</span>
+                                <span className="file-input-text">{t('appPage_chooseFile')}</span>
                             </label>
                             <input
                                 type='file'
@@ -372,7 +372,7 @@ const AppPage = () => {
                                                         className="btn btn-primary btn-link"
                                                         onClick={() => handleLoadSheets(file)}
                                                     >
-                                                        Load fogli
+                                                        {t('appPage_btn_load_sheet')}
                                                     </button>
                                                 ) : Array.isArray(sheetNamesMap[file.name]) ? (
                                                     // Mostra una tendina se ci sono più fogli
@@ -400,12 +400,12 @@ const AppPage = () => {
                                 </table>
                                 <hr className='m-0 p-0' />
                                     
-                                <button className='btn btn-link m-1' onClick={chooseFilters} disabled={!allSheetsSelected}>{selectedFilters.length > 0 ? 'Cambia Filtri' : 'Scegli Filtri'}</button>
+                                <button className='btn btn-link m-1' onClick={chooseFilters} disabled={!allSheetsSelected}>{selectedFilters.length > 0 ? t('appPage_btn_filter_change') : t('appPage_btn_filter_choose')}</button>
                                 <button
                                     className='btn btn-link m-1'
                                     onClick={uploadFiles}
                                     disabled={!useFilters} // Disabilita se "useFilters" è falso o "selectedFilters" è vuoto
-                                > Invia Tutto</button>
+                                >{t('appPage_btn_send')}</button>
                                 
                             </div>
                         )}
@@ -417,8 +417,11 @@ const AppPage = () => {
                                     <div className="modal-dialog modal-dialog-centered">
                                         <div className="modal-content">
                                             <div className="modal-header modal-filters-header">
-                                                <h5 className="modal-title" id="filterModalLabel">Seleziona i Filtri **da escludere**</h5>
-                                                <button type="button" className="btn-close" onClick={closeFilterModal}></button>
+                                                <div>
+                                                <h5 className="modal-title" id="filterModalLabel">{t('modal_filters_title')}</h5>
+                                                <h6 className="modal-title">{t('modal_filters_subtitle')}</h6>
+                                                </div>
+                                                <button type="button" className="btn-close bg-white" onClick={closeFilterModal}></button>
                                             </div>
                                             <div className="modal-body modal-filters-body" style={{ maxHeight: '70dvh', overflowY: 'auto' }}>
 
@@ -444,8 +447,8 @@ const AppPage = () => {
 
                                             </div>
                                             <div className="modal-footer modal-filters-footer">
-                                                <button className="btn btn-secondary" onClick={closeFilterModal}>Annulla</button>
-                                                <button className="btn btn-primary" onClick={closeFilterModal}>Conferma</button>
+                                                <button className="btn btn-secondary" onClick={closeFilterModal}>{t('modal_filters_btn_close')}</button>
+                                                <button className="btn btn-primary btn-link btn-gym-color" onClick={closeFilterModal}>{t('modal_filters_btn_confirm')}</button>
                                             </div>
                                         </div>
                                     </div>
