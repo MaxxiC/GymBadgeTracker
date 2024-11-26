@@ -99,7 +99,7 @@ const MainBar = () => {
                 <div className="modal-dialog modal-dialog-centered" role="document">
                     <div className="modal-content">
                         <div className="modal-header modal-filters-header">
-                            <h5 className="modal-title">{isAuthenticated && t('modal_user_title')}</h5>
+                            <h5 className="modal-title">{isAuthenticated && t('modal_user_dashboard_title')}</h5>
                             <button
                                 type="button"
                                 className="close btn-close  bg-white"
@@ -111,31 +111,31 @@ const MainBar = () => {
                             {isAuthenticated ? <>
                                 {dashboardData ? (
                                     <div className="dashboard">
-                                        <h5 className="mb-3">{t('dashboard_title')}</h5>
+                                        <h5 className="mb-3">{dashboardData.username}</h5>
                                         <div className="mb-4">
                                             <span className="badge bg-primary gym-color">
-                                                {t('usage_remaining')}: {dashboardData.n_usage_total}
+                                                {t('modal_user_usage_remaining')}: {dashboardData.n_usage_total}
                                             </span>
                                         </div>
 
                                         <div className="list-group mb-4">
                                             <div className="list-group-item">
-                                                <strong>{t('email')}:</strong> {dashboardData.email}
+                                                <strong>{t('modal_user_email')}:</strong> {dashboardData.email}
                                             </div>
                                             <div className="list-group-item">
-                                                <strong>{t('total_downloads')}:</strong> {dashboardData.total_downloads}
+                                                <strong>{t('modal_user_total_downloads')}:</strong> {dashboardData.total_downloads}
                                             </div>
                                             <div className="list-group-item">
-                                                <strong>{t('total_documents')}:</strong> {dashboardData.total_documents}
+                                                <strong>{t('modal_user_total_documents')}:</strong> {dashboardData.total_documents}
                                             </div>
                                         </div>
 
                                         <small className="">
-                                            {t('account_created')} {new Date(dashboardData.first_login).toLocaleDateString()}
+                                            {t('modal_user_account_created')} {new Date(dashboardData.first_login).toLocaleDateString()}
                                         </small>
                                     </div>
                                 ) : (
-                                    <p>{t('loading_dashboard')}</p>
+                                    <p>{t('modal_user_loading_dashboard')}</p>
                                 )}
                             </> : <>
 
@@ -159,7 +159,7 @@ const MainBar = () => {
                                     onClick={handleLogout}
                                     data-bs-dismiss="modal"
                                 >
-                                    Logout
+                                    {t('btn_logout')}
                                 </button>
 
                                 <button
@@ -167,7 +167,7 @@ const MainBar = () => {
                                     className="btn btn-secondary"
                                     data-bs-dismiss="modal"
                                 >
-                                    Close
+                                    {t('btn_close')}
                                 </button>
                             </>}
                         </div>
