@@ -1,21 +1,41 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import '../style/HomePage.css';
 import { useAuthContext } from '../context/AuthContext';
+import axios from 'axios';
 
 const MainBar = () => {
     const navigate = useNavigate();
+    const apiUrl = process.env.REACT_APP_API_URL;
     const { t, i18n } = useTranslation();
     const { logout, isAuthenticated } = useAuthContext(); // Ottieni la funzione di logout dal contesto
 
-    // Stato per controllare la visibilità della modal
-    //const [showModal, setShowModal] = useState(false);
+    const [dashboardData, setDashboardData] = useState(null);
 
-    // Funzione per aprire/chiudere la modal
-    //const toggleModal = () => setShowModal(!showModal);
+    const fetchDashboardData = async () => {
+        try {
+            // Recupera il token dal localStorage (o da dove lo conservi)
+            const token = localStorage.getItem('token');
+
+            const response = await axios.get(`${apiUrl}/api/user-dashboard`,{
+                headers: {
+                    Authorization: `Bearer ${token}`  // Includi il token nell'intestazione
+                }
+            }); // Nuova API
+            setDashboardData(response.data);
+        } catch (error) {
+            console.error('Error fetching dashboard data:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            fetchDashboardData();
+        }
+    }, [isAuthenticated]);
 
     const handleLogout = () => {
         logout(); // Esegui il logout
@@ -89,7 +109,34 @@ const MainBar = () => {
                         </div>
                         <div className="modal-body modal-filters-body text-center">
                             {isAuthenticated ? <>
-                                <p>Dettagli dell'utente...</p>
+                                {dashboardData ? (
+                                    <div className="dashboard">
+                                        <h5 className="mb-3">{t('dashboard_title')}</h5>
+                                        <div className="mb-4">
+                                            <span className="badge bg-primary gym-color">
+                                                {t('usage_remaining')}: {dashboardData.n_usage_total}
+                                            </span>
+                                        </div>
+
+                                        <div className="list-group mb-4">
+                                            <div className="list-group-item">
+                                                <strong>{t('email')}:</strong> {dashboardData.email}
+                                            </div>
+                                            <div className="list-group-item">
+                                                <strong>{t('total_downloads')}:</strong> {dashboardData.total_downloads}
+                                            </div>
+                                            <div className="list-group-item">
+                                                <strong>{t('total_documents')}:</strong> {dashboardData.total_documents}
+                                            </div>
+                                        </div>
+
+                                        <small className="">
+                                            {t('account_created')} {new Date(dashboardData.first_login).toLocaleDateString()}
+                                        </small>
+                                    </div>
+                                ) : (
+                                    <p>{t('loading_dashboard')}</p>
+                                )}
                             </> : <>
 
                                 <button
@@ -108,7 +155,7 @@ const MainBar = () => {
                             {isAuthenticated && <>
                                 <button
                                     type="button"
-                                    className="btn btn-primary"
+                                    className="btn btn-primary btn-link btn-gym-color"
                                     onClick={handleLogout}
                                     data-bs-dismiss="modal"
                                 >
