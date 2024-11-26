@@ -200,12 +200,12 @@ app.get('/api/user-dashboard', authenticateToken, async (req, res) => {
 
     // Calcolo totale download
     const totalDownloads = await FileOutModel.aggregate([
-      { $match: { userId: user._id } },
+      { $match: { user_id: user._id } },
       { $group: { _id: null, total: { $sum: '$n_download' } } }
     ]);
 
     // Calcolo totale documenti caricati
-    const totalDocuments = await FileInModel.countDocuments({ userId: user._id });
+    const totalDocuments = await FileInModel.countDocuments({ user_id: user._id });
 
     res.send({
       username: user.username,
@@ -547,14 +547,24 @@ function highlightAndCountDuplicates(worksheet, filterValues, newColumn, filtere
     const currentRow = worksheet.getRow(i);
     const currentID = currentRow.getCell(1).value;
     const cellValueCol6 = currentRow.getCell(6).value;
-    const duplicateCount = worksheet.getColumn(1).values.filter(val => val === currentID).length;
 
+    // Conta solo le occorrenze che soddisfano il filtro
+    const duplicateCount = worksheet
+      .getColumn(1)
+      .values.slice(1) // Escludi l'intestazione della colonna
+      .filter((val, index) => {
+        const row = worksheet.getRow(index + 1);
+        const cellValueCol6Row = row.getCell(6).value;
+        return val === currentID && !isValueExcluded(cellValueCol6Row, filterValues);
+      }).length;
+
+    // Esegui le modifiche solo sulle righe che soddisfano il filtro
     if (duplicateCount > 1 && !isValueExcluded(cellValueCol6, filterValues)) {
       currentRow.eachCell(cell => {
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
-          fgColor: { argb: 'FF7C8080' }, // Colore rosso opaco
+          fgColor: { argb: 'FFC04018' }, // Colore rosso opaco
         };
       });
       currentRow.getCell(newColumn).value = duplicateCount;
@@ -562,17 +572,53 @@ function highlightAndCountDuplicates(worksheet, filterValues, newColumn, filtere
       currentRow.commit();
 
       // Copia la riga nel foglio delle righe duplicate
-      filteredWorksheet.addRow(currentRow.values).commit();
+      const newRow = filteredWorksheet.addRow(currentRow.values);
+
+      // Copia il colore di sfondo delle celle
+      currentRow.eachCell((cell, colNumber) => {
+        if (cell.fill) {
+          newRow.getCell(colNumber).fill = cell.fill; // Copia il fill
+        }
+      });
+
+      newRow.commit(); // Commit delle modifiche sulla riga copiata
       //console.log(`Riga ${i} duplicata e copiata in "RigheCoinvolte".`);
     }
   }
 }
 
 function sortWorksheetByColumn(worksheet, columnIndex) {
-  const rows = worksheet.getSheetValues().slice(2); // Ignora intestazione
-  rows.sort((a, b) => (a[columnIndex] > b[columnIndex] ? 1 : -1));
-  worksheet.spliceRows(2, worksheet.rowCount - 1, ...rows);
+  // Ottieni le righe con tutte le proprietà (valori, stili, ecc.)
+  const rows = [];
+  worksheet.eachRow({ includeEmpty: true }, (row, rowIndex) => {
+    if (rowIndex > 1) { // Ignora l'intestazione
+      rows.push(row);
+    }
+  });
+
+  // Ordina le righe in base alla colonna specificata
+  rows.sort((a, b) => {
+    const valA = a.getCell(columnIndex).value;
+    const valB = b.getCell(columnIndex).value;
+    return valA > valB ? 1 : -1;
+  });
+
+  // Cancella le righe esistenti (escludendo l'intestazione)
+  worksheet.spliceRows(2, worksheet.rowCount - 1);
+
+  // Reinserisci le righe ordinate mantenendo i loro stili
+  rows.forEach(row => {
+    const newRow = worksheet.addRow(row.values);
+    row.eachCell((cell, colNumber) => {
+      if (cell.fill) newRow.getCell(colNumber).fill = cell.fill; // Copia il colore di sfondo
+      if (cell.font) newRow.getCell(colNumber).font = cell.font; // Copia il font
+      if (cell.border) newRow.getCell(colNumber).border = cell.border; // Copia i bordi
+      if (cell.alignment) newRow.getCell(colNumber).alignment = cell.alignment; // Copia l'allineamento
+    });
+    newRow.commit();
+  });
 }
+
 
 // Funzione per ridimensionare le colonne in un foglio
 function autoResizeColumns(worksheet) {
@@ -652,6 +698,8 @@ async function processFile(buffer, sheetName = null, filters) {
     highlightAndCountDuplicates(modifiedWorksheet, filterValues, newColumn, filteredWorksheet);
 
     [modifiedWorksheet, filteredWorksheet].forEach(autoResizeColumns);
+
+    sortWorksheetByColumn(filteredWorksheet, 1);
 
     console.log('---Elaborazione completata con successo.');
     console.log('-------');
