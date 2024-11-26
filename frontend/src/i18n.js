@@ -9,6 +9,7 @@ i18n
       it: {
         translation: {
           welcome: 'Benvenuto',
+          subtitle: 'Prova il servizio',
           goToApp: 'Vai all\'app',
           goToLogin: 'LOGIN',
           appPageTitle: 'Titolo della Pagina App',
@@ -17,6 +18,7 @@ i18n
           btn_info: 'INFO',
           btn_about: 'ABOUT',
           btn_logout: 'LOGOUT',
+          btn_close: 'Close',
           footer_text: 'Tutti i diritti riservati.',
 
           login_title: 'Esegui l\'accesso per usufruire del servizio',
@@ -48,11 +50,19 @@ i18n
           modal_filters_btn_confirm: 'Conferma',
 
           modal_goToLogin: 'Effettua il login per vedere i tuoi dati.',
+          modal_user_dashboard_title: "User Dashboard",
+          modal_user_usage_remaining: "Remaining Usage",
+          modal_user_email: "Email",
+          modal_user_total_downloads: "Total Downloads",
+          modal_user_total_documents: "Total Documents",
+          modal_user_account_created: "Account created on",
+          modal_user_loading_dashboard: "Loading dashboard data...",
         },
       },
       en: {
         translation: {
           welcome: 'Welcome',
+          subtitle: 'Try our service',
           goToApp: 'Go to App',
           goToLogin: 'LOGIN',
           appPageTitle: 'App Page Title',
@@ -61,6 +71,7 @@ i18n
           btn_info: 'INFO',
           btn_about: 'ABOUT',
           btn_logout: 'LOGOUT',
+          btn_close: 'Close',
           footer_text: 'All rights reserved.',
 
           login_title: 'Login Page',
@@ -92,6 +103,13 @@ i18n
           modal_filters_btn_confirm: 'Confirm',
 
           modal_goToLogin: 'Log in to view your data.',
+          modal_user_dashboard_title: "User Dashboard",
+          modal_user_usage_remaining: "Remaining Usage",
+          modal_user_email: "Email",
+          modal_user_total_downloads: "Total Downloads",
+          modal_user_total_documents: "Total Documents",
+          modal_user_account_created: "Account created on",
+          modal_user_loading_dashboard: "Loading dashboard data...",
         },
       },
     },
