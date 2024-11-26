@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import '../style/HomePage.css';
 import MainBar from './MainBar';
 import { useAuthContext } from '../context/AuthContext';
-import logoFitCesena from '../images/logo192.png';
+import logoFitCesena from '../images/Logo-fit-Cesena.jpg';
 
 const HomePage = () => {
   const { t } = useTranslation();
@@ -44,7 +44,7 @@ const HomePage = () => {
           src={logoFitCesena}
           alt="Logo FitActive Cesena"
           className="img-fluid"
-          style={{ maxWidth: '50px', height: 'auto' }}
+          style={{ maxWidth: '80px', height: 'auto' }}
         />
       </div>
     </footer>
