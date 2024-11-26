@@ -200,12 +200,12 @@ app.get('/api/user-dashboard', authenticateToken, async (req, res) => {
 
     // Calcolo totale download
     const totalDownloads = await FileOutModel.aggregate([
-      { $match: { userId: user._id } },
+      { $match: { user_id: user._id } },
       { $group: { _id: null, total: { $sum: '$n_download' } } }
     ]);
 
     // Calcolo totale documenti caricati
-    const totalDocuments = await FileInModel.countDocuments({ userId: user._id });
+    const totalDocuments = await FileInModel.countDocuments({ user_id: user._id });
 
     res.send({
       username: user.username,
