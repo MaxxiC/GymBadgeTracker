@@ -40,6 +40,10 @@ body {
   background-color: rgba(0, 0, 0, 0.8);
 }
 
+.gym-color {
+  background: var(--bg_color_btn_home) !important;
+}
+
 
 .btn-gym-color {
   color: var(--text_color_btn_home);
