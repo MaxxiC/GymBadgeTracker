@@ -1,4 +1,5 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -11,10 +12,10 @@ const MainBar = () => {
     const { logout, isAuthenticated } = useAuthContext(); // Ottieni la funzione di logout dal contesto
 
     // Stato per controllare la visibilità della modal
-    const [showModal, setShowModal] = useState(false);
+    //const [showModal, setShowModal] = useState(false);
 
     // Funzione per aprire/chiudere la modal
-    const toggleModal = () => setShowModal(!showModal);
+    //const toggleModal = () => setShowModal(!showModal);
 
     const handleLogout = () => {
         logout(); // Esegui il logout
@@ -55,7 +56,8 @@ const MainBar = () => {
                     <button
                         className="btn btn-link btn-link-h m-1 text-decoration-none"
                         id="btnUser"
-                        onClick={toggleModal}
+                        data-bs-toggle="modal"
+                        data-bs-target="#userModal"
                     >
                         <i className="bi bi-person-circle"></i>
                     </button>
@@ -64,55 +66,58 @@ const MainBar = () => {
             </div>
 
             {/* Modal */}
-            {showModal && (
-                <div className="modal show d-block" tabIndex="-1" role="dialog">
-                    <div className="modal-dialog modal-dialog-centered" role="document">
 
-                        <div className="modal-content">
+            <div className="modal fade" tabIndex="-1" id="userModal"
+                aria-labelledby="userModalLabel"
+                aria-hidden="true" role="dialog">
+                <div className="modal-dialog modal-dialog-centered" role="document">
 
-                            <div className="modal-header modal-filters-header">
-                                <h5 className="modal-title">{isAuthenticated && t('modal_user_title')}</h5>
+                    <div className="modal-content">
+
+                        <div className="modal-header modal-filters-header">
+                            <h5 className="modal-title">{isAuthenticated && t('modal_user_title')}</h5>
+                            <button
+                                type="button"
+                                className="close btn-close  bg-white"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"
+                            ></button>
+                        </div>
+                        <div className="modal-body modal-filters-body text-center">
+                            {isAuthenticated && <>
+                                <p>Dettagli dell'utente...</p>
+                            </>}
+                            {!isAuthenticated && <>
+                                <Link to="/login" className="btn btn-primary btn-link">
+                                    {t('modal_goToLogin')}
+                                </Link>
+                            </>}
+                        </div>
+
+                        <div className="modal-footer modal-filters-footer">
+                            {isAuthenticated && <>
                                 <button
                                     type="button"
-                                    className="close btn-close  bg-white"
-                                    onClick={toggleModal}
-                                    aria-label="Close"
-                                ></button>
-                            </div>
-                            <div className="modal-body modal-filters-body">
-                                {isAuthenticated && <>
-                                    <p>Dettagli dell'utente...</p>
-                                </>}
-                                {!isAuthenticated && <>
-                                    <Link to="/login" className="btn btn-primary btn-link">
-                {t('goToLogin')}
-              </Link>
-                                </>}
-                            </div>
+                                    className="btn btn-primary"
+                                    onClick={handleLogout}
+                                >
+                                    Logout
+                                </button>
 
-                            <div className="modal-footer modal-filters-footer">
-                                {isAuthenticated && (
-                                    <button
-                                        type="button"
-                                        className="btn btn-primary"
-                                        onClick={handleLogout}
-                                    >
-                                        Logout
-                                    </button>
-                                )}
                                 <button
                                     type="button"
                                     className="btn btn-secondary"
-                                    onClick={toggleModal}
+                                    data-bs-dismiss="modal"
                                 >
                                     Close
                                 </button>
-                            </div>
+                            </>}
                         </div>
-
                     </div>
+
                 </div>
-            )}
+            </div>
+
         </>
     );
 };
