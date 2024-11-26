@@ -192,7 +192,34 @@ app.post('/login', loginLimiter, async (req, res) => {
 });
 
 
+// Endpoint per ottenere i dati dell'utente autenticato
+app.get('/api/user-dashboard', authenticateToken, async (req, res) => {
+  try {
+    const user = await UserModel.findById(req.user.id).select('-password_hash');
+    if (!user) return res.status(404).send({ message: 'User not found' });
 
+    // Calcolo totale download
+    const totalDownloads = await FileOutModel.aggregate([
+      { $match: { userId: user._id } },
+      { $group: { _id: null, total: { $sum: '$n_download' } } }
+    ]);
+
+    // Calcolo totale documenti caricati
+    const totalDocuments = await FileInModel.countDocuments({ userId: user._id });
+
+    res.send({
+      username: user.username,
+      email: user.email,
+      n_usage_total: user.n_usage_total,
+      total_downloads: totalDownloads[0]?.total || 0,
+      total_documents: totalDocuments,
+      first_login: user.first_login,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: 'Internal server error' });
+  }
+});
 
 
 
