@@ -1,7 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import '../style/HomePage.css';
 import { useAuthContext } from '../context/AuthContext';
@@ -20,6 +20,10 @@ const MainBar = () => {
     const handleLogout = () => {
         logout(); // Esegui il logout
         navigate('/'); // Reindirizza alla pagina di login dopo il logout
+    };
+
+    const handleLogin = () => {
+        navigate('/login'); // Reindirizza alla pagina di login dopo il logout
     };
 
     const changeLanguage = (lng) => {
@@ -67,13 +71,13 @@ const MainBar = () => {
 
             {/* Modal */}
 
-            <div className="modal fade" tabIndex="-1" id="userModal"
+            <div className="modal fade"
+                tabIndex="-1"
+                id="userModal"
                 aria-labelledby="userModalLabel"
                 aria-hidden="true" role="dialog">
                 <div className="modal-dialog modal-dialog-centered" role="document">
-
                     <div className="modal-content">
-
                         <div className="modal-header modal-filters-header">
                             <h5 className="modal-title">{isAuthenticated && t('modal_user_title')}</h5>
                             <button
@@ -84,13 +88,19 @@ const MainBar = () => {
                             ></button>
                         </div>
                         <div className="modal-body modal-filters-body text-center">
-                            {isAuthenticated && <>
+                            {isAuthenticated ? <>
                                 <p>Dettagli dell'utente...</p>
-                            </>}
-                            {!isAuthenticated && <>
-                                <Link to="/login" className="btn btn-primary btn-link">
+                            </> : <>
+
+                                <button
+                                    type="button"
+                                    className="btn btn-primary btn-link"
+                                    onClick={handleLogin}
+                                    data-bs-dismiss="modal"
+                                >
                                     {t('modal_goToLogin')}
-                                </Link>
+                                </button>
+
                             </>}
                         </div>
 
@@ -100,6 +110,7 @@ const MainBar = () => {
                                     type="button"
                                     className="btn btn-primary"
                                     onClick={handleLogout}
+                                    data-bs-dismiss="modal"
                                 >
                                     Logout
                                 </button>
