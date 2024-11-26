@@ -17,6 +17,7 @@ i18n
           btn_info: 'INFO',
           btn_about: 'ABOUT',
           btn_logout: 'LOGOUT',
+          footer_text: 'Tutti i diritti riservati.',
 
           login_title: 'Esegui l\'accesso per usufruire del servizio',
           username: 'Utente',
@@ -58,6 +59,7 @@ i18n
           btn_info: 'INFO',
           btn_about: 'ABOUT',
           btn_logout: 'LOGOUT',
+          footer_text: 'All rights reserved.',
 
           login_title: 'Login Page',
           username: 'Username',

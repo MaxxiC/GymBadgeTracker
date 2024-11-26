@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import '../style/HomePage.css';
 import MainBar from './MainBar';
 import { useAuthContext } from '../context/AuthContext';
+import logoFitCesena from '../images/logo192.png';
 
 const HomePage = () => {
   const { t } = useTranslation();
@@ -35,8 +36,20 @@ const HomePage = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    {/* Footer */}
+    <footer className="mt-auto py-3">
+      <div className="container d-flex justify-content-between align-items-center">
+        <p className="m-0 text-center w-100">© {new Date().getFullYear()} GymBadgeTracker. {t('footer_text')}</p>
+        <img
+          src={logoFitCesena}
+          alt="Logo FitActive Cesena"
+          className="img-fluid"
+          style={{ maxWidth: '50px', height: 'auto' }}
+        />
+      </div>
+    </footer>
+  </div>
+);
 };
 
 export default HomePage;
