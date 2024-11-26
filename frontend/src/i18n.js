@@ -46,6 +46,8 @@ i18n
           modal_filters_subtitle: 'Deselezionare i valori **da non controllare**',
           modal_filters_btn_close: 'Annulla',
           modal_filters_btn_confirm: 'Conferma',
+
+          modal_goToLogin: 'Effettua il login per vedere i tuoi dati.',
         },
       },
       en: {
@@ -88,6 +90,8 @@ i18n
           modal_filters_subtitle: 'Uncheck the value to **don\'t check**',
           modal_filters_btn_close: 'Cancel',
           modal_filters_btn_confirm: 'Confirm',
+
+          modal_goToLogin: 'Log in to view your data.',
         },
       },
     },
