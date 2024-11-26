@@ -22,8 +22,8 @@ const AppPage = () => {
     const [sheetNamesMap, setSheetNamesMap] = useState({}); // Mappa dei nomi dei fogli
     const [allSheetsSelected, setAllSheetsSelected] = useState(false);
 
-    const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef(null);
+    
 
     // Funzione generica per inviare una richiesta al backend
     const sendRequest = async (formData) => {
@@ -169,36 +169,7 @@ const AppPage = () => {
     };
 
 
-    // Funzioni di drag & drop
-    const handleDragEnter = (e) => {
-        e.preventDefault();
-        setIsDragging(true);
-    };
-
-    const handleDragLeave = () => {
-        setIsDragging(false);
-    };
-
-    const handleDragOver = (e) => {
-        e.preventDefault();
-    };
-
-    const handleDrop = (e) => {
-        e.preventDefault();
-        setIsDragging(false);
-
-        const droppedFiles = Array.from(e.dataTransfer.files);
-        const isValidFileType = droppedFiles.every(file =>
-            file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-            file.type === 'application/vnd.ms-excel'
-        );
-
-        if (isValidFileType) {
-            setSelectedFiles(prevFiles => [...prevFiles, ...droppedFiles]);
-        } else {
-            console.error('Tipo di file non valido. Accettati solo file Excel.');
-        }
-    };
+    
 
     const handleFileInputChange = (e) => {
         const newFiles = Array.from(e.target.files); // Converti i file in array
@@ -334,12 +305,9 @@ const AppPage = () => {
         <div className="container-fluid index-container">
             <MainBar />
             <div className='d-flex flex-column justify-content-center m-auto'>
-                <div
-                    className={`row div-drop ${isDragging ? 'dragging' : ''}`}
-                    onDragEnter={handleDragEnter}
-                    onDragLeave={handleDragLeave}
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop} >
+
+                <div className={`row div-drop`} >
+
                     <div className="col-12 d-flex flex-column  m-auto text-center align-items-center">
                         <h1 className='m-2'>{t('appPage_welcome')} {capitalizeFirstLetter(user.username)}</h1>
                         <h4 className='m-2 blockquote mb-5'>{t('appPage_subtitle')}</h4>
