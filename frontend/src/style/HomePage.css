@@ -13,10 +13,18 @@
   /* --bg_color_btn_home: #d1892b; */
 }
 
+@font-face {
+  font-family: 'Libel Suit';
+  src: url('../assets/fonts/libel-suit-rg.woff2') format('woff2'),
+       url('../assets/fonts/libel-suit-rg.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Arial', sans-serif;
+  font-family: 'Libel Suit', sans-serif;
 }
 
 .index-container {
