@@ -44,3 +44,4 @@ backend/uploads/
 *.userosscache
 *.suo
 *.suo
+*.tar
